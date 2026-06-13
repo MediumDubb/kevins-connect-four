@@ -1,0 +1,16 @@
+{
+  "name": "mediumdubb/connectfour",
+  "type": "dev-project",
+  "description": "A bare bones PHP-OOP connect four game to play with friends",
+  "version": "0.1.0",
+  "require": {
+    "php": "^8.4",
+    "vlucas/phpdotenv": "^5.6",
+    "ext-pdo": "*"
+  },
+  "autoload": {
+    "psr-4": {
+      "MediumDubb\\ConnectFour\\": "app/src/"
+    }
+  }
+}
