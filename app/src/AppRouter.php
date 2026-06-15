@@ -6,8 +6,8 @@ class AppRouter
 {
     protected array $routes = [];
 
-    // Register a GET route
-    public function get(string $path, array $handler): void {
+    // Register a SET route
+    public function set(string $path, array $handler): void {
         $this->routes['GET'][$path] = $handler;
     }
 

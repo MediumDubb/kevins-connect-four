@@ -2,8 +2,9 @@
 
 use Dotenv\Dotenv;
 use MediumDubb\ConnectFour\AppRouter;
-use MediumDubb\ConnectFour\Controllers\EntryController;
+use MediumDubb\ConnectFour\Controllers\LobbyController;
 use MediumDubb\ConnectFour\Controllers\GameBoardController;
+use MediumDubb\ConnectFour\Controllers\MatchmakingController;
 
 // Find autoload.php
 if (file_exists(__DIR__ . '/../vendor/autoload.php')) {
@@ -16,14 +17,15 @@ if (file_exists(__DIR__ . '/../vendor/autoload.php')) {
     exit(1);
 }
 
-$dotenv = Dotenv::createImmutable(__DIR__ . "../../");
+$dotenv = Dotenv::createImmutable(dirname(__DIR__));
 $dotenv->load();
 
 $router = new AppRouter();
 
 // Define your routes here
-$router->get('/', [EntryController::class, 'index']);
-$router->get('/board', [GameBoardController::class, 'index']);
+$router->set('/', [LobbyController::class, 'index']);
+$router->set('/board', [GameBoardController::class, 'index']);
+$router->set('/assign', [MatchmakingController::class, 'assignBoard']);
 
 // Run the router using the server request data
 $router->resolve($_SERVER['REQUEST_URI'], $_SERVER['REQUEST_METHOD']);
