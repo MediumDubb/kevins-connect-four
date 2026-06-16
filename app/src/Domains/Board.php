@@ -1,6 +1,6 @@
 <?php
 
-namespace MediumDubb\ConnectFour\Domain;
+namespace MediumDubb\ConnectFour\Domains;
 
 class Board
 {
@@ -8,7 +8,8 @@ class Board
         public readonly string $id,
         public readonly string $player_one_id,
         public readonly string $player_two_id,
-        public readonly string $board_matrix_json,
+        public readonly string $current_player_id,
+        public readonly Token $tokens,
         public readonly ?string $winner_id,
         public readonly bool $finished,
     ) {}

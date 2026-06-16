@@ -2,31 +2,29 @@
 
 namespace MediumDubb\ConnectFour\Repositories;
 
-use MediumDubb\ConnectFour\Domain\Turn;
+use MediumDubb\ConnectFour\Domains\Token;
 use MediumDubb\ConnectFour\Database\PDOConnector;
 
-class TurnRepo
+class TokenRepo
 {
     private const string TABLE = 'turns';
 
     private const array ALLOWED_CREATE_FIELDS = [
-        'name',
-        'level',
-        'score',
-        'team_id',
+
     ];
 
     private const array ALLOWED_UPDATE_FIELDS = [
-        'name',
-        'level',
-        'score',
-        'team_id',
+
+    ];
+
+    private const array ALLOWED_PUBLIC_FIELDS = [
+
     ];
 
     public function __construct(private readonly PDOConnector $db)
     {}
 
-    public function findByID(string $id): ?Turn
+    public function findByID(string $id): ?Token
     {
 
     }
@@ -46,7 +44,7 @@ class TurnRepo
 
     }
 
-    public function mapToModel(array $rowData): Turn
+    public function mapToModel(array $rowData): Token
     {
 
     }

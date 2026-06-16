@@ -2,7 +2,7 @@
 
 namespace MediumDubb\ConnectFour\Repositories;
 
-use MediumDubb\ConnectFour\Domain\Board;
+use MediumDubb\ConnectFour\Domains\Board;
 use MediumDubb\ConnectFour\Database\PDOConnector;
 
 class BoardRepo

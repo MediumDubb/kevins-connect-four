@@ -1,13 +1,14 @@
 <?php
 
-namespace MediumDubb\ConnectFour\Domain;
+namespace MediumDubb\ConnectFour\Domains;
 
-class Turn
+class Token
 {
     public function __construct(
         public readonly string $id,
         public readonly string $board_id,
         public readonly string $player_id,
-        public readonly int $turn_count
+        public readonly int $column,
+        public readonly int $row
     ) {}
 }

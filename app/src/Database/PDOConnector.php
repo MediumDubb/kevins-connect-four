@@ -9,7 +9,7 @@ use PDOStatement;
 
 class PDOConnector
 {
-    private ?PDO $connection = null;
+    public ?PDO $pdo = null;
 
     /**
      * @throws Exception
@@ -36,7 +36,7 @@ class PDOConnector
         ];
 
         try {
-            $this->connection = new PDO($dsn, $username, $password, $options);
+            $this->pdo = new PDO($dsn, $username, $password, $options);
         } catch (PDOException $e) {
             // Log this error in production instead of echoing it directly
             throw new Exception("Database connection failed: " . $e->getMessage());
@@ -46,16 +46,16 @@ class PDOConnector
     public function run(string $sql, array $params = []): PDOStatement
     {
         if (empty($params)) {
-            return $this->connection->query($sql);
+            return $this->pdo->query($sql);
         }
 
-        $statement = $this->connection->prepare($sql);
+        $statement = $this->pdo->prepare($sql);
         $statement->execute($params);
         return $statement;
     }
 
     public function test_connection(): string
     {
-        return is_null($this->connection) ? "Connection terminated" : "Connecion active";
+        return is_null($this->pdo) ? "Connection terminated" : "Connecion active";
     }
 }

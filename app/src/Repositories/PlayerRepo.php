@@ -2,8 +2,9 @@
 
 namespace MediumDubb\ConnectFour\Repositories;
 
-use MediumDubb\ConnectFour\Domain\Player;
+use MediumDubb\ConnectFour\Domains\Player;
 use MediumDubb\ConnectFour\Database\PDOConnector;
+use PDO;
 
 class PlayerRepo
 {
@@ -11,16 +12,14 @@ class PlayerRepo
 
     private const array ALLOWED_CREATE_FIELDS = [
         'name',
-        'level',
-        'score',
-        'team_id',
+        'color',
+        'ip'
     ];
 
     private const array ALLOWED_UPDATE_FIELDS = [
         'name',
-        'level',
-        'score',
-        'team_id',
+        'color',
+        'board_id',
     ];
 
     public function __construct(private readonly PDOConnector $db)
@@ -28,7 +27,13 @@ class PlayerRepo
 
     public function findByID(string $id): ?Player
     {
+        $sql = 'SELECT * FROM players WHERE id = :id LIMIT 1';
 
+        $stmt = $this->db->run($sql, ['id' => $id]);
+
+        $player = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        return $player ?: null;
     }
 
     public function create(array $data): string
