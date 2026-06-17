@@ -12,5 +12,10 @@ class Board
         public readonly Token $tokens,
         public readonly ?string $winner_id,
         public readonly bool $finished,
-    ) {}
+    ){}
+
+    public function getUUID(): string
+    {
+        $sql ="SELECT BIN_TO_UUID(id, 1) AS id, created_at FROM boards;";
+    }
 }

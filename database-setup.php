@@ -8,18 +8,18 @@ $db = new PDOConnector();
 
 $db->run("
     CREATE TABLE IF NOT EXISTS players (
-        id VARCHAR(36) DEFAULT (UUID()) PRIMARY KEY,
+        id BINARY(16) DEFAULT (UUID_TO_BIN(UUID(), 1)) PRIMARY KEY,
         created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
     )
 ");
 
 $db->run("
     CREATE TABLE IF NOT EXISTS boards (
-        id VARCHAR(36) DEFAULT (UUID()) PRIMARY KEY,
-        player_one_id VARCHAR(36) NOT NULL,
-        player_two_id VARCHAR(36) NOT NULL,
-        current_player_id VARCHAR(36) NOT NULL,
-        winner_id VARCHAR(36) NULL,
+        id BINARY(16) DEFAULT (UUID_TO_BIN(UUID(), 1)) PRIMARY KEY,
+        player_one_id BINARY(16) NOT NULL,
+        player_two_id BINARY(16) NOT NULL,
+        current_player_id BINARY(16) NOT NULL,
+        winner_id BINARY(16) NULL,
         board_finished BOOLEAN NOT NULL DEFAULT FALSE,
         created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
         
@@ -40,8 +40,8 @@ $db->run("
 $db->run("
     CREATE TABLE IF NOT EXISTS tokens (
         id INT PRIMARY KEY AUTO_INCREMENT NOT NULL,
-        board_id VARCHAR(36) NOT NULL,
-        player_id VARCHAR(36) NOT NULL,
+        board_id BINARY(16) NOT NULL,
+        player_id BINARY(16) NOT NULL,
         board_row INT NOT NULL,
         board_column INT NOT NULL,
         created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
