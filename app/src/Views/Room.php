@@ -17,20 +17,10 @@
             <form action="/assign" method="post">
                 <label for="playerName">Name*:</label>
                 <input type="text" id="playerName" name="playerName" placeholder="Enter Player Name">
-                <label for="color">Choose Color*:</label>
-                <select name="color" id="color">
-                    <option value="red">Red</option>
-                    <option value="orange">Orange</option>
-                    <option value="yellow">Yellow</option>
-                    <option value="green">Green</option>
-                    <option value="blue">Blue</option>
-                    <option value="indigo">Indigo</option>
-                    <option value="violet">Violet</option>
-                </select>
                 <label for="matchID">Join:</label>
                 <input type="text" id="matchID" name="matchID" placeholder="Match ID">
 
-                <input type="submit" value="Join Game">
+                <input type="submit" value="Join/Create Game">
             </form>
         </div>
     </div>

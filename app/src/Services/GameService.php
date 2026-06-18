@@ -8,6 +8,10 @@ use MediumDubb\ConnectFour\Repositories\TokenRepo;
 
 class GameService
 {
+    /**
+     * Handle Game Logic for Controller
+     */
+
     public function __construct(
         private readonly SessionService $sessionService,
         private BoardRepo $boardRepo,
