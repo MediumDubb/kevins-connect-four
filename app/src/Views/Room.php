@@ -5,11 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Document Title</title>
     <!-- Link your CSS stylesheet here -->
-    <link rel="stylesheet" href="styles.css">
+    <!-- <link rel="stylesheet" href=""> -->
 </head>
 <body>
 
-<p><?php echo $this->db->test_connection() ?></p>
+<!-- Your web page content goes here -->
 <div class="container">
     <div class="flex-center">
         <div class="form-container">
@@ -35,8 +35,7 @@
         </div>
     </div>
 </div>
-
-
 <!-- Link your JavaScript file here -->
+<!--<script type="text/javascript" src=""></script>-->
 </body>
 </html>

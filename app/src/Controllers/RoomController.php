@@ -2,10 +2,10 @@
 
 namespace MediumDubb\ConnectFour\Controllers;
 
-class GameBoardController
+class RoomController
 {
     public function index(): void
     {
-        require_once (dirname(__DIR__) . "/Views/GameBoard.php");
+        require_once (dirname(__DIR__) . "/Views/Room.php");
     }
 }

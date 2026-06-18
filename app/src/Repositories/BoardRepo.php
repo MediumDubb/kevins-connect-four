@@ -37,23 +37,7 @@ class BoardRepo
         return $id;
     }
 
-    public function findByID(string $board_id): ?Board
-    {
-        $bin = $this->getBIN($board_id);
-
-        $stmt = $this->db->run(
-            "SELECT * FROM boards WHERE id = :id",
-            ['id' => $bin]
-        );
-
-        $board = $stmt->fetch(PDO::FETCH_ASSOC);
-
-        $this->mapToModel($board);
-
-        return $board;
-    }
-
-    public function startGame(string $board_id, array $player_two_id): void
+    public function joinBoard(string $board_id, string $player_two_id): void
     {
         $bin = $this->getBIN($board_id);
 
@@ -69,17 +53,19 @@ class BoardRepo
         );
     }
 
-    public function updateTurn(string $board_id, array $other_player_id): void
+    public function updateTurn(string $player_id, array $data): void
     {
-        $bin = $this->getBIN($board_id);
+        $player_bin = $this->getBIN($player_id);
 
         $this->db->run(
             "UPDATE boards
                     SET current_player_id = :current_player_id
-                    WHERE id = :id",
+                    WHERE player_one_id = :id
+                    OR player_two_id = :id
+                    AND finished = 0",
             [
-                'current_player_id' => $other_player_id,
-                'id' => $bin
+                'current_player_id' => $data['other_player_id'],
+                'id' => $player_bin
             ]
         );
     }
