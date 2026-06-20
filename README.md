@@ -14,3 +14,8 @@ DB_PASSWORD
 DB_CHARSET
 
 DB_NAME
+
+## SASSY Comp
+```sh 
+sass --watch theme/src/app.scss:public/assets/css/dist/app.min.css --style compressed
+``` 

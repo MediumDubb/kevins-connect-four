@@ -5,12 +5,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Document Title</title>
     <!-- Link your CSS stylesheet here -->
-     <link rel="stylesheet" href="http://c4.local/assets/css/app.css">
+     <link rel="stylesheet" href="http://c4.local/assets/css/dist/app.min.css">
 </head>
 <body>
 
 <!-- Your web page content goes here -->
-<div class="container">
+<div class="container" id="gameBoard">
     <div class="flex-center">
         <p>Current Player:<span id="player_name"></span></p>
         <form>

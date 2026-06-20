@@ -18,8 +18,8 @@ $db->run("
     CREATE TABLE IF NOT EXISTS boards (
         id BINARY(16) DEFAULT (UUID_TO_BIN(UUID(), 1)) PRIMARY KEY,
         player_one_id BINARY(16) NOT NULL,
-        player_two_id BINARY(16) NOT NULL,
-        current_player_id BINARY(16) NOT NULL,
+        player_two_id BINARY(16) NULL,
+        current_player_id BINARY(16) NULL,
         winner_id BINARY(16) NULL,
         board_finished BOOLEAN NOT NULL DEFAULT FALSE,
         created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,

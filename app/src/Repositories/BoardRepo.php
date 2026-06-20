@@ -4,7 +4,6 @@ namespace MediumDubb\ConnectFour\Repositories;
 
 use MediumDubb\ConnectFour\Domains\Board;
 use MediumDubb\ConnectFour\Database\PDOConnector;
-use PDO;
 
 class BoardRepo
 {
@@ -27,7 +26,7 @@ class BoardRepo
         $id = $stmt->fetchColumn();
 
         $this->db->run(
-            "INSERT INTO boards (id, player_one_id) VALUES (UUID_TO_BIN(:id, 1), :player_one_id)",
+            "INSERT INTO boards (id, player_one_id) VALUES (UUID_TO_BIN(:id, 1), UUID_TO_BIN(:player_one_id, 1))",
             [
                 'id' => $id,
                 'player_one_id' => $player_id,
@@ -43,7 +42,7 @@ class BoardRepo
 
         $this->db->run(
             "UPDATE boards
-                    SET player_two_id = :player_two_id, current_player_id = :current_player_id
+                    SET player_two_id = UUID_TO_BIN(:player_two_id), current_player_id = UUID_TO_BIN(:current_player_id)
                     WHERE id = :id",
             [
                 'player_two_id' => $player_two_id,
@@ -52,6 +51,16 @@ class BoardRepo
             ]
         );
     }
+    public function getOpenBoardID(): ?string
+    {
+        $stmt = $this->db->run(
+            "SELECT BIN_TO_UUID(id, 1) FROM boards WHERE player_two_id IS NULL LIMIT 1"
+        );
+
+        $id = $stmt->fetchColumn();
+
+        return $id ?: null;
+    }
 
     public function updateTurn(string $player_id, array $data): void
     {
@@ -59,13 +68,14 @@ class BoardRepo
 
         $this->db->run(
             "UPDATE boards
-                    SET current_player_id = :current_player_id
-                    WHERE player_one_id = :id
-                    OR player_two_id = :id
+                    SET current_player_id = UUID_TO_BIN(:current_player_id)
+                    WHERE player_one_id = UUID_TO_BIN(:p1_id)
+                    OR player_two_id = UUID_TO_BIN(:p2_id)
                     AND finished = 0",
             [
                 'current_player_id' => $data['other_player_id'],
-                'id' => $player_bin
+                'p1_id' => $player_bin,
+                'p2_id' => $player_bin
             ]
         );
     }
