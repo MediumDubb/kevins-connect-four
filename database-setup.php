@@ -9,6 +9,7 @@ $db = new PDOConnector();
 $db->run("
     CREATE TABLE IF NOT EXISTS players (
         id BINARY(16) DEFAULT (UUID_TO_BIN(UUID(), 1)) PRIMARY KEY,
+        player_name VARCHAR(64) NOT NULL,
         created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
     )
 ");

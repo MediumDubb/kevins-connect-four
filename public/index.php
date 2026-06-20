@@ -1,10 +1,9 @@
 <?php
 
 use Dotenv\Dotenv;
-use MediumDubb\ConnectFour\AppRouter;
 use MediumDubb\ConnectFour\Controllers\API\GameApiController;
-use MediumDubb\ConnectFour\Controllers\LobbyController;
 use MediumDubb\ConnectFour\Controllers\RoomController;
+use MediumDubb\ConnectFour\Core\AppRouter;
 
 // Find autoload.php
 if (file_exists(__DIR__ . '/../vendor/autoload.php')) {
@@ -20,14 +19,15 @@ if (file_exists(__DIR__ . '/../vendor/autoload.php')) {
 $dotenv = Dotenv::createImmutable(dirname(__DIR__));
 $dotenv->load();
 
-$router = new AppRouter();
+$router = AppRouter::getRouter();
 
 // Define your routes here
-$router->set('/', [RoomController::class, 'index']);
-$router->set('/api/create-room', [GameApiController::class, 'createRoom']);
-$router->set('/api/join-room', [GameApiController::class, 'joinRoom']);
-$router->set('/api/getBoardSate', [GameApiController::class, 'getBoardSate']);
-$router->set('/api/dropToken', [GameApiController::class, 'dropToken']);
+$router->get('/', [new RoomController(), 'index']);
+$router->get('/room/{id}', [new RoomController(), 'gameRoom']);
+$router->get('/api/join-room', [GameApiController::class, 'joinRoom']);
+$router->get('/api/getBoardSate', [GameApiController::class, 'getBoardSate']);
+$router->get('/api/dropToken', [GameApiController::class, 'dropToken']);
+$router->post('/api/create-room', [GameApiController::class, 'createRoom']);
 
 // Run the router using the server request data
-$router->resolve($_SERVER['REQUEST_URI'], $_SERVER['REQUEST_METHOD']);
+$router->dispatch();

@@ -6,6 +6,12 @@ class RoomController
 {
     public function index(): void
     {
+        require_once (dirname(__DIR__) . "/Views/Entry.php");
+    }
+
+    public function gameRoom(string $id): void
+    {
+        $test = $id;
         require_once (dirname(__DIR__) . "/Views/Room.php");
     }
 }

@@ -7,6 +7,7 @@ class GameApiController
 
     private function createRoom()
     {
+        // accepts empty POST
         // check for valid user ID in session
             // if none exist,
                 // then create one
@@ -21,6 +22,7 @@ class GameApiController
 
     private function joinRoom()
     {
+        // accepts GET with board ID
         // check for valid user ID in session
             // if none exist,
                 // then create one

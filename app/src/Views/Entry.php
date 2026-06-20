@@ -13,7 +13,15 @@
 <div class="container">
     <div class="flex-center">
         <div class="form-container">
-            <h1>Game room</h1>
+            <h1>Kevin's Connect4</h1>
+            <form action="/assign" method="post">
+                <label for="playerName">Name*:</label>
+                <input type="text" id="playerName" name="playerName" placeholder="Enter Player Name">
+                <label for="matchID">Join:</label>
+                <input type="text" id="boardID" name="boardID" placeholder="Board ID">
+
+                <input type="submit" value="Go">
+            </form>
         </div>
     </div>
 </div>
