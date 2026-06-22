@@ -41,7 +41,7 @@ class ApiError
         return self::$valid;
     }
 
-    public function getErrorMessagesArray(): array
+    public function getErrorsList(): array
     {
         return self::$errors;
     }

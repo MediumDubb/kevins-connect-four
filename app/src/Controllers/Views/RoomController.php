@@ -21,18 +21,23 @@ class RoomController extends CoreController
 
     public function gameRoom(string $id): void
     {
-        $test = $id;
         // check if board exists
-        // check if board is open
+        // check if board is completed
         // check if current user session matches assigned players
-        require_once (dirname(__DIR__, 2) . "/Views/Room.php");
+        $valid_player = $this->validatePlayerSession($id);
+        if ($valid_player) {
+            require_once (dirname(__DIR__, 2) . "/Views/Room.php");
+        } else {
+            header("location: {$this->getBaseURI()}");
+        }
+
     }
 
     #[NoReturn]
     public function initGame(): void
     {
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            $this->clearUid(); // TESTing
+            $this->clearUid(); //test
             $action = $this->getValidatedAction();
             $player_id = $this->getPlayerID();
             $room_id = $this->getRoomID($player_id, $action);
@@ -104,9 +109,16 @@ class RoomController extends CoreController
         return $room_id;
     }
 
-    private function assignPlayerRoom()
+    public function validatePlayerSession(string $room_id): bool
     {
+        if ($session_uid = $this->getUid()) {
+            $board_users = new BoardRepo($this->db)->getRoomPlayerIDs($room_id);
+            if (is_array($board_users)) {
+                return in_array($session_uid, $board_users);
+            }
+        }
 
+        return false;
     }
 
     private function createRoom()

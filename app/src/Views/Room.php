@@ -178,7 +178,7 @@
     </div>
 </div>
 <!-- Link your JavaScript file here -->
-<p>The <a href="https://codepen.io/finnhvman/pen/xXpzVN" target="_blank">board</a> was taken from the talented <a href="https://codepen.io/finnhvman/" target="_blank">@finnhvman</a> on codepen, because I'm lazy and liked it.</p>
+<p>The <a href="https://codepen.io/finnhvman/pen/xXpzVN" target="_blank">board</a> was taken from the talented <a href="https://codepen.io/finnhvman/" target="_blank">@finnhvman</a> on codepen, because I'm not a designer and it's awesome.</p>
 <script type="text/javascript" src="http://c4.local/assets/javascript/game-script.js"></script>
 </body>
 </html>

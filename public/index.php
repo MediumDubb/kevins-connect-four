@@ -1,7 +1,7 @@
 <?php
 
 use Dotenv\Dotenv;
-use MediumDubb\ConnectFour\Controllers\API\GameApiController;
+use MediumDubb\ConnectFour\Controllers\Game\GameApiController;
 use MediumDubb\ConnectFour\Controllers\Views\RoomController;
 use MediumDubb\ConnectFour\Core\AppRouter;
 use MediumDubb\ConnectFour\Database\PDOConnector;

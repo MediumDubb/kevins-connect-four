@@ -4,6 +4,7 @@ namespace MediumDubb\ConnectFour\Repositories;
 
 use MediumDubb\ConnectFour\Domains\Board;
 use MediumDubb\ConnectFour\Database\PDOConnector;
+use PDO;
 
 class BoardRepo
 {
@@ -80,12 +81,49 @@ class BoardRepo
         );
     }
 
-    public function mapToModel(array $rowData): Board
+    public function getRoomPlayerIDs(string $room_id): ?array
+    {
+        $room_bin = $this->getBIN($room_id);
+
+        $stmt = $this->db->run(
+            "SELECT 
+                        BIN_TO_UUID(player_one_id, 1) AS player_one_id,
+                        BIN_TO_UUID(player_two_id, 1) AS player_two_id
+                    FROM boards
+                    WHERE id = :room_bin
+                    AND board_finished = 0
+                    LIMIT 1",
+            [
+                'room_bin' => $room_bin,
+            ]
+        );
+
+        return $stmt->fetch(PDO::FETCH_ASSOC) ?: null;
+    }
+
+    public function getBoardState(string $room_id): ?array
+    {
+        $room_bin = $this->getBIN($room_id);
+
+        $stmt = $this->db->run(
+            "SELECT *
+                    FROM boards
+                    WHERE id = :room_bin
+                    LIMIT 1",
+            [
+                'room_bin' => $room_bin,
+            ]
+        );
+
+        return $stmt->fetch(PDO::FETCH_ASSOC) ?: null;
+    }
+
+    public function getBoardTokens(): array
     {
 
     }
 
-    public function getBoardTokens(): array
+    public function mapToModel(array $rowData): Board
     {
 
     }
