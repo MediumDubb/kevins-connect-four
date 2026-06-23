@@ -2,6 +2,7 @@
 
 namespace MediumDubb\ConnectFour\Controllers\Game;
 
+use JetBrains\PhpStorm\NoReturn;
 use MediumDubb\ConnectFour\Controllers\Core\CoreController;
 use MediumDubb\ConnectFour\Repositories\BoardRepo;
 
@@ -19,21 +20,27 @@ class GameApiController extends CoreController
     }
 
     // called after every action
-    public function getBoardSate(): string
+    #[NoReturn]
+    public function getBoardSate(): void
     {
         $result = null;
         if ($room_id = $this->getSafeRoomID()) {
             $room_row = new BoardRepo($this->db)->getBoardState($room_id);
-            if (!$this->errors->isValid()) {
-                $result['response'] = ['errors' => $this->errors->getErrorsList()];
-            } else if (is_array($room_row)) {
-                $result['response'] = ['data' => $room_row];
+            $room_tokens = new BoardRepo($this->db)->getBoardTokens($room_id);
+            if (is_array($room_tokens)) {
+                $room_row['tokens'] = $room_tokens;
+            }
+            if ($this->errors->isValid() && is_array($room_row)) {
+                $result['result'] = ['data' => $room_row];
             } else {
-                $result['response'] = ['errors' => 'Something went wrong'];
+                $result['result'] = ['error' => 'Something went wrong'];
             }
         }
 
-        return json_encode($result);
+        header('Content-Type: application/json; charset=utf-8');
+        http_response_code(200);
+        echo json_encode($result);
+        exit;
     }
 
     private function getSafeRoomID(): ?string

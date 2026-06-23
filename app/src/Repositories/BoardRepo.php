@@ -52,6 +52,7 @@ class BoardRepo
             ]
         );
     }
+    
     public function getOpenBoardID(): ?string
     {
         $stmt = $this->db->run(
@@ -106,7 +107,13 @@ class BoardRepo
         $room_bin = $this->getBIN($room_id);
 
         $stmt = $this->db->run(
-            "SELECT *
+            "SELECT 
+                    BIN_TO_UUID(id, 1) AS id,
+                    BIN_TO_UUID(player_one_id, 1) AS player_one_id,
+                    BIN_TO_UUID(player_two_id, 1) AS player_two_id,
+                    BIN_TO_UUID(current_player_id, 1) AS current_player_id,
+                    BIN_TO_UUID(winner_id, 1) AS winner_id,
+                    board_finished
                     FROM boards
                     WHERE id = :room_bin
                     LIMIT 1",
@@ -118,9 +125,21 @@ class BoardRepo
         return $stmt->fetch(PDO::FETCH_ASSOC) ?: null;
     }
 
-    public function getBoardTokens(): array
+    public function getBoardTokens(string $room_id): array
     {
+        $room_bin = $this->getBIN($room_id);
 
+        $stmt = $this->db->run(
+            "SELECT 
+                    *
+                    FROM tokens
+                    WHERE board_id = :room_bin",
+            [
+                'room_bin' => $room_bin,
+            ]
+        );
+
+        return $stmt->fetch(PDO::FETCH_ASSOC) ?: [];
     }
 
     public function mapToModel(array $rowData): Board

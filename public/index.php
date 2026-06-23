@@ -28,10 +28,10 @@ $db = new PDOConnector();
 // Define your routes here
 $router->get('/', [new RoomController($session, $db), 'index']);
 $router->get('/room/{id}', [new RoomController($session, $db), 'gameRoom']);
-$router->get('/api/dropToken', [new GameApiController($session, $db), 'dropToken']);
+$router->get('/api/get-state', [new GameApiController($session, $db), 'getBoardSate']);
 
 $router->post('/room/init', [new RoomController($session, $db), 'initGame']);
-$router->post('/api/create-room', [new GameApiController($session, $db), 'createRoom']);
+$router->post('/api/drop-token', [new GameApiController($session, $db), 'dropToken']);
 
 // Run the router using the server request data
 $router->dispatch();

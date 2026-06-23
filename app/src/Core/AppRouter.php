@@ -49,7 +49,8 @@ class AppRouter
     // Match request and call controller method
     public function dispatch() {
         // Clean up URI and strip query strings
-        $requestedRoute = trim($_SERVER['REQUEST_URI'], '/') ?? '/';
+        $path = explode('?', $_SERVER['REQUEST_URI'])[0] ?: $_SERVER['REQUEST_URI'];
+        $requestedRoute = trim($path, "/") ?? '/';
         $routes = self::$routes[$_SERVER['REQUEST_METHOD']];
 
         foreach ($routes as $route => $action)

@@ -21,16 +21,12 @@ class RoomController extends CoreController
 
     public function gameRoom(string $id): void
     {
-        // check if board exists
-        // check if board is completed
-        // check if current user session matches assigned players
         $valid_player = $this->validatePlayerSession($id);
         if ($valid_player) {
             require_once (dirname(__DIR__, 2) . "/Views/Room.php");
         } else {
             header("location: {$this->getBaseURI()}");
         }
-
     }
 
     #[NoReturn]
