@@ -4,16 +4,18 @@ let board_state, my_turn, setting_token;
 my_turn = false;
 setting_token = false;
 board_state = {
-    user_id: null,
-    current_player_id: null,
+    player_id: null,
+    current_turn_pid: null,
     tokens: [],
     finished: false,
     winner_id: null,
     room_ready: false,
+    errors: null
 };
 
 document.addEventListener("DOMContentLoaded", (e) => {
     fetchBoardState();
+    eventManager();
 });
 
 // expected user flow:
@@ -33,14 +35,21 @@ document.addEventListener("DOMContentLoaded", (e) => {
 
 function eventManager()
 {
-
+    let cols = document.querySelectorAll('#gameBoard form .board div.column')
+    cols.forEach(col => {
+        col.addEventListener('click', (e) => {
+            let currCol = e.currentTarget
+            console.log(currCol)
+        })
+    })
 }
 
 function fetchBoardState()
 {
-    const endpoint = base_uri + "/get-state?room_id=" + room_id;
+    const endpoint = base_uri + '/get-state?room_id=' + room_id;
     fetch(endpoint).then(async response => {
         const text = await response.text();
+        console.log(JSON.parse(text));
         return JSON.parse(text);
     })
         .then(data => {
@@ -53,31 +62,45 @@ function fetchBoardState()
 
 function setBoardState(resObj) {
     if (resObj.data) {
-        // resObj.data.board_finished
-        // resObj.data.current_player_id
-        // resObj.data.id
-        // resObj.data.player_one_id
-        // resObj.data.player_two_id
-        // resObj.data.winner_id
-
-        board_state.user_id = resObj.data.id
-        board_state.current_player_id = resObj.data.id
+        board_state.player_id = resObj.data.player_id
+        board_state.current_turn_pid = resObj.data.current_player_id
         board_state.tokens = resObj.data.tokens
         board_state.finished = resObj.data.board_finished
         board_state.winner_id = resObj.data.winner_id
-        // board_state.room_ready = resObj.data.id
-
+        board_state.room_ready = resObj.data.room_ready
+    } else {
+        board_state.errors = resObj.data.error;
     }
-
-    console.log(board_state);
 }
 
-function setPlayerSelection()
+function setToken()
+{
+    const endpoint = base_uri + '/drop-token';
+    const args = {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(getTokenSelection)
+    };
+    fetch(endpoint, args).then(async response => {
+        const text = await response.text();
+        return JSON.parse(text);
+    })
+        .then(data => {
+            setBoardState(data.result);
+        })
+        .catch(error => {
+            console.error('Fetch failed:', error);
+        });
+}
+
+function getTokenSelection(eventObj)
 {
 
 }
 
-function validateSelection()
+function validateToken()
 {
 
 }

@@ -23,9 +23,8 @@ class TokenRepo
     public function createToken(array $data): void
     {
         $this->db->run(
-            "INSERT INTO tokens (id, board_id, player_id, board_row, board_column) 
+            "INSERT INTO tokens 
                     (
-                        id,
                         board_id,
                         player_id,
                         board_row,
@@ -33,7 +32,6 @@ class TokenRepo
                      ) 
                     VALUES 
                     (
-                         (UUID_TO_BIN(UUID(), 1)),
                          :board_id,
                          :player_id,
                          :board_row,

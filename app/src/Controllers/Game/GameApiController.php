@@ -26,11 +26,11 @@ class GameApiController extends CoreController
         $result = null;
         if ($room_id = $this->getSafeRoomID()) {
             $room_row = new BoardRepo($this->db)->getBoardState($room_id);
-            $room_tokens = new BoardRepo($this->db)->getBoardTokens($room_id);
-            if (is_array($room_tokens)) {
-                $room_row['tokens'] = $room_tokens;
-            }
+            $room_row['tokens'] = new BoardRepo($this->db)->getBoardTokens($room_id);;
+            $room_row['board_finished'] = ($room_row['board_finished'] !== 0);
+            $room_row['player_id'] = $this->getUid();
             if ($this->errors->isValid() && is_array($room_row)) {
+                $room_row['room_ready'] = ($room_row['player_one_id'] && $room_row['player_two_id']);
                 $result['result'] = ['data' => $room_row];
             } else {
                 $result['result'] = ['error' => 'Something went wrong'];

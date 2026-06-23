@@ -8,7 +8,6 @@ class AppRouter
 
     private static AppRouter $router;
 
-
     private function __construct()
     {
     }
@@ -49,8 +48,8 @@ class AppRouter
     // Match request and call controller method
     public function dispatch() {
         // Clean up URI and strip query strings
-        $path = explode('?', $_SERVER['REQUEST_URI'])[0] ?: $_SERVER['REQUEST_URI'];
-        $requestedRoute = trim($path, "/") ?? '/';
+        $url_parts = parse_url($_SERVER['REQUEST_SCHEME'] .'://' . $_SERVER['SERVER_NAME'] . $_SERVER['REQUEST_URI']);
+        $requestedRoute = trim($url_parts['path'], '/') ?? '/';
         $routes = self::$routes[$_SERVER['REQUEST_METHOD']];
 
         foreach ($routes as $route => $action)
