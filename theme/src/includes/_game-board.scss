@@ -71,8 +71,8 @@
         transition: opacity 0.2s, top 0s 0.2s, color 0s 0.2s;
     }
 
-    /* yellow's turn */
-    input:hover + .disc {
+    input:hover + .disc,
+    input.is-hovered + .disc {
         opacity: 1;
         transition: opacity 0.2s, top 0s;
         &.p1 {
@@ -82,7 +82,9 @@
             color: #ff3b18;
         }
     }
-    input:checked + .disc {
+
+    input:checked + .disc,
+    input.is-checked + .disc {
         opacity: 1;
         &.p1 {
             color: #ffd918;

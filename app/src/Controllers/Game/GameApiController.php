@@ -50,14 +50,14 @@ class GameApiController extends CoreController
         $tokens = new BoardRepo($this->db)->getBoardTokens($room_id);
         $playerClass = $this->getPlayerClass($player_id, $room_id);
         $my_turn = ($player_id === $room_row['current_player_id']);
-        $finished = ($room_row['board_finished'] !== 0);
+        $board_finished = ($room_row['board_finished'] !== 0);
         $room_ready = ($room_row['player_one_id'] && $room_row['player_two_id']);
 
         return [
             "player_class" => $playerClass,
             "room_ready" => $room_ready,
             "my_turn" => $my_turn,
-            "finished" => $finished,
+            "board_finished" => $board_finished,
             "tokens" => $tokens,
             "setting_token" => false,
         ];
