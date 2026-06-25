@@ -43,15 +43,11 @@ $db->run("
         id INT PRIMARY KEY AUTO_INCREMENT NOT NULL,
         board_id BINARY(16) NOT NULL,
         player_id BINARY(16) NOT NULL,
-        board_row INT NOT NULL,
         board_column INT NOT NULL,
         created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
         
         CONSTRAINT token_position_unique
-            UNIQUE (board_id, board_row, board_column),
-        
-        CONSTRAINT valid_row
-            CHECK (board_row BETWEEN 0 AND 5),
+            UNIQUE (board_id, board_column),
         
         CONSTRAINT valid_column
             CHECK (board_column BETWEEN 0 AND 6),

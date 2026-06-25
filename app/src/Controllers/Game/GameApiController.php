@@ -5,18 +5,23 @@ namespace MediumDubb\ConnectFour\Controllers\Game;
 use JetBrains\PhpStorm\NoReturn;
 use MediumDubb\ConnectFour\Controllers\Core\CoreController;
 use MediumDubb\ConnectFour\Repositories\BoardRepo;
+use MediumDubb\ConnectFour\Repositories\TokenRepo;
 
 class GameApiController extends CoreController
 {
-    public function dropToken()
+    #[NoReturn]
+    public function dropToken(): void
     {
-        // check if player turn
-        // check if current board is full
-            // if no to either
-                // return error and a timeout
-        // if proper player and board not full
-            // create token
-            // consume request to fill token row
+        $room_id = $_POST['room_id'] ?? null;
+
+        if (!is_null($room_id)) {
+            $tokenObj = $this->getTokenObj();
+            if (!is_null($tokenObj)) {
+                $success = new TokenRepo($this->db)->setToken($tokenObj);
+            }
+        }
+
+        $this->getBoardSate();
     }
 
     // called after every action
@@ -26,12 +31,8 @@ class GameApiController extends CoreController
         $result = null;
         if ($room_id = $this->getSafeRoomID()) {
             $room_row = new BoardRepo($this->db)->getBoardState($room_id);
-            $room_row['tokens'] = new BoardRepo($this->db)->getBoardTokens($room_id);;
-            $room_row['board_finished'] = ($room_row['board_finished'] !== 0);
-            $room_row['player_id'] = $this->getUid();
             if ($this->errors->isValid() && is_array($room_row)) {
-                $room_row['room_ready'] = ($room_row['player_one_id'] && $room_row['player_two_id']);
-                $result['result'] = ['data' => $room_row];
+                $result['result'] = ['data' => $this->getBoardStateObj($room_row, $room_id)];
             } else {
                 $result['result'] = ['error' => 'Something went wrong'];
             }
@@ -43,9 +44,45 @@ class GameApiController extends CoreController
         exit;
     }
 
+    private function getBoardStateObj(array $room_row, string $room_id): array
+    {
+        $player_id = $this->getUid();
+        $tokens = new BoardRepo($this->db)->getBoardTokens($room_id);
+        $playerClass = $this->getPlayerClass($player_id, $room_id);
+        $my_turn = ($player_id === $room_row['current_player_id']);
+        $finished = ($room_row['board_finished'] !== 0);
+        $room_ready = ($room_row['player_one_id'] && $room_row['player_two_id']);
+
+        return [
+            "player_class" => $playerClass,
+            "room_ready" => $room_ready,
+            "my_turn" => $my_turn,
+            "finished" => $finished,
+            "tokens" => $tokens,
+            "setting_token" => false,
+        ];
+    }
+
+    private function getTokenObj(): ?array
+    {
+        if (isset($_POST)) {
+            return [
+                "room_id" => $_POST['room_id'],
+                "player_id" => $this->getUid() ?? $_POST['player_id'],
+                "board_column" => $_POST['board_column'],
+            ];
+        }
+
+        return null;
+    }
+
     private function getSafeRoomID(): ?string
     {
         $roomId = trim($_GET['room_id']) ?? null;
+
+        if (is_null($roomId) && isset($_POST)) {
+            $roomId = $_POST['room_id'] ?? null;
+        }
 
         if (!is_string($roomId)) {
             // Missing or invalid type
@@ -64,5 +101,10 @@ class GameApiController extends CoreController
         }
 
         return $roomId;
+    }
+
+    private function getPlayerClass(string $player_id, string $room_id): string
+    {
+        return ($player_id === new BoardRepo($this->db)->getPlayerOne($room_id)) ? 'p1' : 'p2';
     }
 }

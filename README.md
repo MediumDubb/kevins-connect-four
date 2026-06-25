@@ -1,4 +1,4 @@
-# Welcome to Kevin's Connect Four!
+# Welcome to Kevin's Connect4!
 This is a light weight PHP-OOP project that I was assigned by a mentor a while back and never did. Now I realize what this mentor was trying to instill in me, and I am a better programmer for it.
 
 ## Configs

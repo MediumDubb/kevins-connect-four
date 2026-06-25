@@ -4,6 +4,8 @@ namespace MediumDubb\ConnectFour\Repositories;
 
 use MediumDubb\ConnectFour\Domains\Token;
 use MediumDubb\ConnectFour\Database\PDOConnector;
+use PDO;
+use PDOException;
 
 class TokenRepo
 {
@@ -20,39 +22,67 @@ class TokenRepo
     public function __construct(private readonly PDOConnector $db)
     {}
 
-    public function createToken(array $data): void
+    public function setToken(array $data): bool
     {
-        $this->db->run(
-            "INSERT INTO tokens 
+        try {
+            $this->db->run(
+                "INSERT INTO tokens 
                     (
                         board_id,
                         player_id,
-                        board_row,
                         board_column
                      ) 
                     VALUES 
                     (
                          :board_id,
                          :player_id,
-                         :board_row,
-                         :board_column,
+                         :board_column
                      )",
-            [
-                'board_id' => $data['board_id'],
-                'player_id' => $data['player_id'],
-                'board_row' => $data['board_row'],
-                'board_column' => $data['board_column'],
-            ]
-        );
+                [
+                    'board_id' => $this->getBIN($data['room_id']),
+                    'player_id' => $this->getBIN($data['player_id']),
+                    'board_column' => intval($data['board_column']),
+                ]
+            );
+        } catch (PDOException $e) {
+            return false;
+        }
+
+        return true;
     }
 
-    public function getByBoardID(int $board_id): array
+    public function getByBoardID(int $board_id): ?array
     {
+        $board_bin = $this->getBIN($board_id);
 
+        $stmt = $this->db->run(
+            "SELECT 
+                    BIN_TO_UUID(id, 1) AS id,
+                    BIN_TO_UUID(board_id, 1) AS board_id,
+                    BIN_TO_UUID(player_id, 1) AS player_id,
+                    board_column
+                    FROM boards
+                    WHERE id = :board_bin",
+            [
+                'board_bin' => $board_bin,
+            ]
+        );
+
+        return $stmt->fetch(PDO::FETCH_ASSOC) ?: null;
     }
 
     public function mapToModel(array $rowData): Token
     {
 
+    }
+
+    private function getBIN(string $id)
+    {
+        $stmt = $this->db->run(
+            "SELECT UUID_TO_BIN(:id, 1) AS id",
+            ['id' => $id]
+        );
+
+        return $stmt->fetchColumn();
     }
 }

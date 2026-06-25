@@ -29,6 +29,7 @@
         display: inline-flex;
         flex-flow: column wrap;
         height: 360px;
+        position: relative;
     }
 
     .front {
@@ -45,61 +46,16 @@
 
     /* Invisible inputs */
     input {
-        display: none;
         position: absolute;
-        top: -16px;
+        top: -90px;
         margin: 0;
         width: 60px;
         height: 450px;
         cursor: pointer;
         opacity: 0;
-    }
-    input:indeterminate {
-        display: initial;
-    }
-    /* Inputs for red */
-    .column > input:nth-of-type(2n) {
-        right: 360px;
-    }
-    .column > .column > input:nth-of-type(2n) {
-        right: 300px;
-    }
-    .column > .column > .column > input:nth-of-type(2n) {
-        right: 240px;
-    }
-    .column > .column > .column > .column > input:nth-of-type(2n) {
-        right: 180px;
-    }
-    .column > .column > .column > .column > .column > input:nth-of-type(2n) {
-        right: 120px;
-    }
-    .column > .column > .column > .column > .column > .column > input:nth-of-type(2n) {
-        right: 60px;
-    }
-    .column > .column > .column > .column > .column > .column > .column > input:nth-of-type(2n) {
-        right: 0;
-    }
-    /* Inputs for yellow */
-    .column > input:nth-of-type(2n+1) {
-        left: 0;
-    }
-    .column > .column > input:nth-of-type(2n+1) {
-        left: 60px;
-    }
-    .column > .column > .column > input:nth-of-type(2n+1) {
-        left: 120px;
-    }
-    .column > .column > .column > .column > input:nth-of-type(2n+1) {
-        left: 180px;
-    }
-    .column > .column > .column > .column > .column > input:nth-of-type(2n+1) {
-        left: 240px;
-    }
-    .column > .column > .column > .column > .column > .column > input:nth-of-type(2n+1) {
-        left: 300px;
-    }
-    .column > .column > .column > .column > .column > .column > .column > input:nth-of-type(2n+1) {
-        left: 360px;
+        &:checked {
+            display: none;
+        }
     }
 
     /* Disc */
@@ -117,25 +73,24 @@
 
     /* yellow's turn */
     input:hover + .disc {
-        color: #ffd918;
         opacity: 1;
         transition: opacity 0.2s, top 0s;
+        &.p1 {
+            color: #ffd918;
+        }
+        &.p2 {
+            color: #ff3b18;
+        }
     }
     input:checked + .disc {
-        color: #ffd918;
         opacity: 1;
+        &.p1 {
+            color: #ffd918;
+        }
+        &.p2 {
+            color: #ff3b18;
+        }
     }
-
-    /*!* Yellow's turn *!*/
-    /*input:hover + input + .disc {*/
-    /*    color: #ffd918;*/
-    /*    opacity: 1;*/
-    /*    transition: opacity 0.2s, top 0s;*/
-    /*}*/
-    /*input:checked + input + .disc {*/
-    /*    color: #ffd918;*/
-    /*    opacity: 1;*/
-    /*}*/
 
     /* Height and time of disc fall per row */
     input:hover + .disc:nth-of-type(1),
@@ -185,12 +140,6 @@
     input:checked + .disc:nth-of-type(6n),
     input:checked + input + .disc:nth-of-type(6n) {
         transition: top 0.32s cubic-bezier(0.56, 0, 1, 1);
-    }
-
-    /* Fix stuck disc */
-    input:checked + .disc,
-    input:checked + input + .disc {
-        top: 0 !important;
     }
 }
 

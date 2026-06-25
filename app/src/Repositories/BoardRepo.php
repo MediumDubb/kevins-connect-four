@@ -102,6 +102,25 @@ class BoardRepo
         return $stmt->fetch(PDO::FETCH_ASSOC) ?: null;
     }
 
+    public function getPlayerOne(string $room_id): ?string
+    {
+        $room_bin = $this->getBIN($room_id);
+
+        $stmt = $this->db->run(
+            "SELECT 
+                    BIN_TO_UUID(player_one_id, 1) AS player_one_id
+                    FROM boards
+                    WHERE id = :room_bin
+                    AND board_finished = 0
+                    LIMIT 1",
+            [
+                'room_bin' => $room_bin,
+            ]
+        );
+
+        return $stmt->fetchColumn() ?: null;
+    }
+
     public function getBoardState(string $room_id): ?array
     {
         $room_bin = $this->getBIN($room_id);

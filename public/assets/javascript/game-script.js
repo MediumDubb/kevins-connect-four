@@ -1,21 +1,17 @@
 const base_uri = window.location.protocol + "//" + window.location.hostname + "/api";
 const room_id = getRoomID();
-let board_state, my_turn, setting_token;
-my_turn = false;
-setting_token = false;
-board_state = {
-    player_id: null,
-    current_turn_pid: null,
-    tokens: [],
-    finished: false,
-    winner_id: null,
+let polling, poll_interval_id;
+let board_state = {
+    player_class: null,
     room_ready: false,
-    errors: null
+    setting_token: false,
+    my_turn: false,
+    finished: false,
+    tokens: [],
 };
 
 document.addEventListener("DOMContentLoaded", (e) => {
-    fetchBoardState();
-    eventManager();
+    // heart_beat();
 });
 
 // expected user flow:
@@ -31,6 +27,10 @@ document.addEventListener("DOMContentLoaded", (e) => {
 
 // possible one-off events that must be controlled:
 
+// on board hover check if player is the current player
+// disable any action if the server returns false
+// else allow them to interact
+
 
 
 function eventManager()
@@ -44,64 +44,46 @@ function eventManager()
     })
 }
 
-function fetchBoardState()
-{
-    const endpoint = base_uri + '/get-state?room_id=' + room_id;
-    fetch(endpoint).then(async response => {
-        const text = await response.text();
-        console.log(JSON.parse(text));
-        return JSON.parse(text);
-    })
-        .then(data => {
-            setBoardState(data.result);
-        })
-        .catch(error => {
-            console.error('Fetch failed:', error);
-        });
-}
-
 function setBoardState(resObj) {
     if (resObj.data) {
-        board_state.player_id = resObj.data.player_id
-        board_state.current_turn_pid = resObj.data.current_player_id
-        board_state.tokens = resObj.data.tokens
-        board_state.finished = resObj.data.board_finished
-        board_state.winner_id = resObj.data.winner_id
+        board_state.player_class = resObj.data.player_class
         board_state.room_ready = resObj.data.room_ready
+        board_state.setting_token = resObj.data.setting_token
+        board_state.my_turn = resObj.data.my_turn
+        board_state.tokens = resObj.data.tokens
+        board_state.finished = resObj.data.finished
+        renderBoard();
     } else {
         board_state.errors = resObj.data.error;
+        displayerErrors();
     }
 }
 
-function setToken()
+function setToken(column)
 {
     const endpoint = base_uri + '/drop-token';
-    const args = {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(getTokenSelection)
-    };
-    fetch(endpoint, args).then(async response => {
-        const text = await response.text();
-        return JSON.parse(text);
-    })
-        .then(data => {
-            setBoardState(data.result);
-        })
-        .catch(error => {
-            console.error('Fetch failed:', error);
+    const formBody = new URLSearchParams({
+        room_id: room_id,
+        board_column: column
+    });
+
+    try {
+        const response = fetch(endpoint, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            body: formBody
         });
-}
+        const data = JSON.parse(response.text());
+        setBoardState(data.result);
 
-function getTokenSelection(eventObj)
-{
-
-}
-
-function validateToken()
-{
+        if (!board_state.my_turn && !board_state.finished) {
+            startPolling();
+        }
+    } catch (err) {
+        console.log('Token post failed: ' + err);
+    }
 
 }
 
@@ -110,12 +92,44 @@ function displayerErrors()
 
 }
 
-function myTurn()
-{
-    return (board_state.user_id === board_state.current_player_id)
-}
-
 function getRoomID()
 {
     return window.location.pathname.split("/").pop();
+}
+
+function startPolling()
+{
+    if (polling) {
+        return;
+    }
+
+    polling = true;
+    pollBoard();
+}
+
+function pollBoard()
+{
+    if (!polling) {
+        return;
+    }
+
+    try {
+        const response = fetch(base_uri + '/get-state?room_id=' + room_id);
+        const data = JSON.parse(response.text());
+        setBoardState(data.result);
+        if (board_state.my_turn || board_state.finished) {
+            polling = false;
+            clearInterval(poll_interval_id);
+            return;
+        }
+    } catch (error) {
+        console.error('Polling failed:', error);
+    }
+
+    poll_interval_id = setInterval(pollBoard, 3000);
+}
+
+function renderBoard()
+{
+
 }
