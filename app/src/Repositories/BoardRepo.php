@@ -43,11 +43,31 @@ class BoardRepo
 
         $this->db->run(
             "UPDATE boards
-                    SET player_two_id = UUID_TO_BIN(:player_two_id), current_player_id = UUID_TO_BIN(:current_player_id)
+                    SET player_two_id = UUID_TO_BIN(:player_two_id, 1)
                     WHERE id = :id",
             [
                 'player_two_id' => $player_two_id,
-                'current_player_id' => $player_two_id,
+                'id' => $bin
+            ]
+        );
+
+        $player_ids = $this->getRoomPlayerIDs($board_id);
+        if (is_array($player_ids)) {
+            $index = array_rand($player_ids);
+            $this->setStartPlayer($board_id, $player_ids[$index]);
+        }
+    }
+
+    private function setStartPlayer(string $board_id, string $player_id): void
+    {
+        $bin = $this->getBIN($board_id);
+
+        $this->db->run(
+            "UPDATE boards
+                    SET current_player_id = UUID_TO_BIN(:current_player_id, 1)
+                    WHERE id = :id",
+            [
+                'current_player_id' => $player_id,
                 'id' => $bin
             ]
         );
@@ -88,8 +108,8 @@ class BoardRepo
 
         $stmt = $this->db->run(
             "SELECT 
-                        BIN_TO_UUID(player_one_id, 1) AS player_one_id,
-                        BIN_TO_UUID(player_two_id, 1) AS player_two_id
+                    BIN_TO_UUID(player_one_id, 1) AS player_one_id,
+                    BIN_TO_UUID(player_two_id, 1) AS player_two_id
                     FROM boards
                     WHERE id = :room_bin
                     AND board_finished = 0

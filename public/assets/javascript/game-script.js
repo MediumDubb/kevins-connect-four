@@ -17,7 +17,7 @@ const setColsClickEvent = (e) => {
 
 // entry/init
 document.addEventListener("DOMContentLoaded", () => {
-    // startPolling(); // infinite compounding loop by not checking if an interval existed
+    startPolling(); // infinite compounding loop by not checking if an interval existed
 });
 
 function getRoomID()
@@ -44,6 +44,7 @@ async function pollBoard()
     try {
         const response = await fetch(base_uri + '/get-state?room_id=' + room_id);
         const data = JSON.parse(await response.text());
+        console.log(data);
         setBoardState(data.result);
         if (board_state.my_turn || board_state.board_finished) {
             polling = false;
