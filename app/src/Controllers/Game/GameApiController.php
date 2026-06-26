@@ -18,10 +18,14 @@ class GameApiController extends CoreController
             $tokenObj = $this->getTokenObj();
             if (!is_null($tokenObj)) {
                 $success = new TokenRepo($this->db)->setToken($tokenObj);
+                if ($success) {
+                    $boardRepo = new BoardRepo($this->db);
+                    $next_player_id = $boardRepo->alternatePlayer($room_id);
+                    $boardRepo->updatePlayerTurn($room_id, $next_player_id);
+                    $this->getBoardSate();
+                }
             }
         }
-
-        $this->getBoardSate();
     }
 
     // called after every action
@@ -54,11 +58,12 @@ class GameApiController extends CoreController
         $room_ready = ($room_row['player_one_id'] && $room_row['player_two_id']);
 
         return [
+            "player_id" => $player_id,
             "player_class" => $playerClass,
             "room_ready" => $room_ready,
             "my_turn" => $my_turn,
             "board_finished" => $board_finished,
-            "tokens" => $tokens,
+            "tokens" => [$tokens],
             "setting_token" => false,
         ];
     }
@@ -78,10 +83,10 @@ class GameApiController extends CoreController
 
     private function getSafeRoomID(): ?string
     {
-        $roomId = trim($_GET['room_id']) ?? null;
+        $roomId = isset($_GET['room_id']) ? trim($_GET['room_id']) : null;
 
         if (is_null($roomId) && isset($_POST)) {
-            $roomId = $_POST['room_id'] ?? null;
+            $roomId = isset($_POST['room_id']) ? trim($_POST['room_id']) : null;
         }
 
         if (!is_string($roomId)) {

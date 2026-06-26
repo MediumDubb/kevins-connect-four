@@ -5,6 +5,7 @@ namespace MediumDubb\ConnectFour\Repositories;
 use MediumDubb\ConnectFour\Domains\Board;
 use MediumDubb\ConnectFour\Database\PDOConnector;
 use PDO;
+use PDOException;
 
 class BoardRepo
 {
@@ -84,22 +85,41 @@ class BoardRepo
         return $id ?: null;
     }
 
-    public function updateTurn(string $player_id, array $data): void
+    public function updatePlayerTurn(string $board_id, string $player_id): void
     {
-        $player_bin = $this->getBIN($player_id);
+        try {
+            $this->db->run(
+                "UPDATE boards
+                    SET current_player_id = UUID_TO_BIN(:current_player_id, 1)
+                    WHERE id = UUID_TO_BIN(:id, 1)
+                    AND board_finished = 0",
+                [
+                    'current_player_id' => $player_id,
+                    'id' => $board_id
+                ]
+            );
+        } catch (PDOException $e) {
+            $test = "";
+        }
 
-        $this->db->run(
-            "UPDATE boards
-                    SET current_player_id = UUID_TO_BIN(:current_player_id)
-                    WHERE player_one_id = UUID_TO_BIN(:p1_id)
-                    OR player_two_id = UUID_TO_BIN(:p2_id)
-                    AND finished = 0",
+    }
+
+    public function alternatePlayer(string $board_id): ?string
+    {
+        $stmt = $this->db->run(
+            "SELECT 
+                    CASE 
+                        WHEN current_player_id = player_one_id THEN BIN_TO_UUID(player_two_id, 1)
+                        ELSE BIN_TO_UUID(player_one_id, 1)
+                    END AS opposing_player_id
+                FROM boards
+                WHERE id = UUID_TO_BIN(:board_id, 1)",
             [
-                'current_player_id' => $data['other_player_id'],
-                'p1_id' => $player_bin,
-                'p2_id' => $player_bin
+                'board_id' => $board_id
             ]
         );
+
+        return $stmt->fetchColumn() ?? null;
     }
 
     public function getRoomPlayerIDs(string $room_id): ?array
@@ -170,7 +190,10 @@ class BoardRepo
 
         $stmt = $this->db->run(
             "SELECT 
-                    *
+                    id,
+                    BIN_TO_UUID(board_id, 1) AS board_id,
+                    BIN_TO_UUID(player_id, 1) AS player_id,
+                    board_column
                     FROM tokens
                     WHERE board_id = :room_bin",
             [

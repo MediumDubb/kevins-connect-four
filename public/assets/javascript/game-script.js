@@ -1,4 +1,4 @@
-let polling, poll_interval_id, cols, board_state, abort_controller;
+let polling, poll_interval_id, inputs, board_state, abort_controller;
 board_state = {
     player_class: null,
     room_ready: false,
@@ -7,12 +7,15 @@ board_state = {
     board_finished: false,
     tokens: [],
 };
-cols = document.querySelectorAll('#gameBoard form .board > div.column');
+inputs = document.querySelectorAll('#gameBoard form .board .column input[type=radio]');
+console.log(inputs)
 poll_interval_id = null;
 const base_uri = window.location.protocol + "//" + window.location.hostname + "/api";
 const room_id = getRoomID();
-const setColsClickEvent = (e) => {
-    setToken(parseInt(e.currentTarget.dataset.col));
+const setInputsClickEvent = (e) => {
+    console.log('setting token');
+    console.log(e.currentTarget.parentElement.dataset.col)
+    setToken(parseInt(e.currentTarget.parentElement.dataset.col));
 }
 
 // entry/init
@@ -94,6 +97,7 @@ async function setToken(column)
             body: formBody
         });
         const data = JSON.parse(await response.text());
+
         setBoardState(data.result);
 
         if (!board_state.my_turn && !board_state.board_finished) {
@@ -114,8 +118,8 @@ function setBoardEvents()
 
     abort_controller = new AbortController();
 
-    cols.forEach(col => {
-        col.addEventListener('click', setColsClickEvent, { signal: abort_controller.signal })
+    inputs.forEach(radio => {
+        radio.addEventListener('click', setInputsClickEvent, { signal: abort_controller.signal })
     });
 }
 

@@ -16,7 +16,7 @@
         <form>
             <div class="board">
                 <div class="field grid">
-                    <div class="column" data-col="1">
+                    <div class="column" data-col="0">
                         <input type="radio" name="slot1" tabindex="-1" required>
                         <div class="disc"></div>
                         <input type="radio" name="slot8" tabindex="-1" required>
@@ -31,7 +31,7 @@
                         <div class="disc"></div>
                     </div>
                     <!--Column 1 after-->
-                    <div class="column" data-col="2">
+                    <div class="column" data-col="1">
                         <input type="radio" name="slot2" tabindex="-1" required>
                         <div class="disc"></div>
                         <input type="radio" name="slot9" tabindex="-1" required>
@@ -46,7 +46,7 @@
                         <div class="disc"></div>
                     </div>
                     <!--Column 2 after-->
-                    <div class="column" data-col="3">
+                    <div class="column" data-col="2">
                         <input type="radio" name="slot3" tabindex="-1" required>
                         <div class="disc"></div>
                         <input type="radio" name="slot10" tabindex="-1" required>
@@ -61,7 +61,7 @@
                         <div class="disc"></div>
                     </div>
                     <!--Column 3 after-->
-                    <div class="column" data-col="4">
+                    <div class="column" data-col="3">
                         <input type="radio" name="slot4" tabindex="-1" required>
                         <div class="disc"></div>
                         <input type="radio" name="slot11" tabindex="-1" required>
@@ -76,7 +76,7 @@
                         <div class="disc"></div>
                     </div>
                     <!--Column 4 after-->
-                    <div class="column" data-col="5">
+                    <div class="column" data-col="4">
                         <input type="radio" name="slot5" tabindex="-1" required>
                         <div class="disc"></div>
                         <input type="radio" name="slot12" tabindex="-1" required>
@@ -91,7 +91,7 @@
                         <div class="disc"></div>
                     </div>
                     <!--Column 5 after-->
-                    <div class="column" data-col="6">
+                    <div class="column" data-col="5">
                         <input type="radio" name="slot6" tabindex="-1" required>
                         <div class="disc"></div>
                         <input type="radio" name="slot13" tabindex="-1" required>
@@ -106,7 +106,7 @@
                         <div class="disc"></div>
                     </div>
                     <!--Column 6 after-->
-                    <div class="column" data-col="7">
+                    <div class="column" data-col="6">
                         <input type="radio" name="slot7" tabindex="-1" required>
                         <div class="disc"></div>
                         <input type="radio" name="slot14" tabindex="-1" required>
