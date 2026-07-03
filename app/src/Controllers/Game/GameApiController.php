@@ -63,8 +63,7 @@ class GameApiController extends CoreController
             "room_ready" => $room_ready,
             "my_turn" => $my_turn,
             "board_finished" => $board_finished,
-            "tokens" => [$tokens],
-            "setting_token" => false,
+            "tokens" => $tokens,
         ];
     }
 
@@ -85,8 +84,8 @@ class GameApiController extends CoreController
     {
         $roomId = isset($_GET['room_id']) ? trim($_GET['room_id']) : null;
 
-        if (is_null($roomId) && isset($_POST)) {
-            $roomId = isset($_POST['room_id']) ? trim($_POST['room_id']) : null;
+        if (is_null($roomId) && isset($_POST['room_id'])) {
+            $roomId = $_POST['room_id'];
         }
 
         if (!is_string($roomId)) {

@@ -7,6 +7,18 @@ use MediumDubb\ConnectFour\Database\PDOConnector;
 $db = new PDOConnector();
 
 $db->run("
+    DROP TABLE tokens;
+");
+
+$db->run("
+    DROP TABLE boards;
+");
+
+$db->run("
+    DROP TABLE players;
+");
+
+$db->run("
     CREATE TABLE IF NOT EXISTS players (
         id BINARY(16) DEFAULT (UUID_TO_BIN(UUID(), 1)) PRIMARY KEY,
         player_name VARCHAR(64) NOT NULL,
@@ -45,9 +57,6 @@ $db->run("
         player_id BINARY(16) NOT NULL,
         board_column INT NOT NULL,
         created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-        
-        CONSTRAINT token_position_unique
-            UNIQUE (board_id, board_column),
         
         CONSTRAINT valid_column
             CHECK (board_column BETWEEN 0 AND 6),

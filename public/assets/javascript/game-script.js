@@ -2,13 +2,13 @@ let polling, poll_interval_id, inputs, board_state, abort_controller;
 board_state = {
     player_class: null,
     room_ready: false,
-    setting_token: false,
     my_turn: false,
     board_finished: false,
     tokens: [],
 };
+
 inputs = document.querySelectorAll('#gameBoard form .board .column input[type=radio]');
-console.log(inputs)
+
 poll_interval_id = null;
 const base_uri = window.location.protocol + "//" + window.location.hostname + "/api";
 const room_id = getRoomID();
@@ -69,11 +69,10 @@ function setBoardState(resObj) {
     if (resObj.data) {
         board_state.player_class = resObj.data.player_class
         board_state.room_ready = resObj.data.room_ready
-        board_state.setting_token = resObj.data.setting_token
         board_state.my_turn = resObj.data.my_turn
         board_state.tokens = resObj.data.tokens
         board_state.board_finished = resObj.data.board_finished
-        renderBoard();
+        renderBoard(board_state.tokens);
     } else {
         board_state.errors = resObj.data.error;
         displayerErrors();
@@ -130,9 +129,16 @@ function abortBoardEvents()
     }
 }
 
-function renderBoard()
+function renderBoard(tokens)
 {
-
+    const checkedInputs = document.querySelectorAll(`#gameBoard form .board .field.grid .column input:checked`);
+    if ( (tokens.length > checkedInputs.length) ) {
+        tokens.forEach((token) => {
+            const uncheckedInputs= document.querySelectorAll(`#gameBoard form .board .field.grid .column[data-col="${token.board_column}"] input:not(:checked)`);
+            let lastUncheckedInput = Array.from(uncheckedInputs).pop();
+            lastUncheckedInput.checked = true;
+        })
+    }
 }
 
 function displayerErrors()

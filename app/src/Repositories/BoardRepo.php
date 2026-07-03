@@ -190,7 +190,6 @@ class BoardRepo
 
         $stmt = $this->db->run(
             "SELECT 
-                    id,
                     BIN_TO_UUID(board_id, 1) AS board_id,
                     BIN_TO_UUID(player_id, 1) AS player_id,
                     board_column
@@ -201,7 +200,7 @@ class BoardRepo
             ]
         );
 
-        return $stmt->fetch(PDO::FETCH_ASSOC) ?: [];
+        return $stmt->fetchAll(PDO::FETCH_ASSOC) ?: [];
     }
 
     public function mapToModel(array $rowData): Board
