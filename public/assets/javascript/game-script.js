@@ -1,5 +1,6 @@
 let polling, poll_interval_id, inputs, board_state, abort_controller;
 board_state = {
+    player_id: null,
     player_class: null,
     room_ready: false,
     my_turn: false,
@@ -13,14 +14,16 @@ poll_interval_id = null;
 const base_uri = window.location.protocol + "//" + window.location.hostname + "/api";
 const room_id = getRoomID();
 const setInputsClickEvent = (e) => {
-    console.log('setting token');
-    console.log(e.currentTarget.parentElement.dataset.col)
-    setToken(parseInt(e.currentTarget.parentElement.dataset.col));
+    e.preventDefault();
+    const col = parseInt(e.currentTarget.parentElement.dataset.col);
+    if (! (document.querySelectorAll(`form .board .grid .column[data-col="${col}"] input[type=radio]:checked`).length >= 6) ) {
+        setToken(col);
+    }
 }
 
 // entry/init
 document.addEventListener("DOMContentLoaded", () => {
-    startPolling(); // infinite compounding loop by not checking if an interval existed
+    startPolling();
 });
 
 function getRoomID()
@@ -67,11 +70,18 @@ async function pollBoard()
 
 function setBoardState(resObj) {
     if (resObj.data) {
+        board_state.player_id = resObj.data.player_id
         board_state.player_class = resObj.data.player_class
         board_state.room_ready = resObj.data.room_ready
         board_state.my_turn = resObj.data.my_turn
         board_state.tokens = resObj.data.tokens
         board_state.board_finished = resObj.data.board_finished
+        document.getElementById("gameBoard").classList.add(board_state.player_class);
+        if (!board_state.my_turn) {
+            document.getElementById("gameBoard").classList.add('disabled');
+        } else {
+            document.getElementById("gameBoard").classList.remove('disabled');
+        }
         renderBoard(board_state.tokens);
     } else {
         board_state.errors = resObj.data.error;
@@ -131,13 +141,38 @@ function abortBoardEvents()
 
 function renderBoard(tokens)
 {
-    const checkedInputs = document.querySelectorAll(`#gameBoard form .board .field.grid .column input:checked`);
-    if ( (tokens.length > checkedInputs.length) ) {
-        tokens.forEach((token) => {
-            const uncheckedInputs= document.querySelectorAll(`#gameBoard form .board .field.grid .column[data-col="${token.board_column}"] input:not(:checked)`);
-            let lastUncheckedInput = Array.from(uncheckedInputs).pop();
-            lastUncheckedInput.checked = true;
+    const checkedInputsLength = document.querySelectorAll(`#gameBoard form .board .field.grid .column input:checked`).length;
+
+    if ( checkedInputsLength < tokens.length ) {
+        let diff = (checkedInputsLength - tokens.length);
+        tokens.slice(diff).forEach((token) => {
+            tokenSeeding(token);
         })
+    } else if (checkedInputsLength > tokens.length) {
+        document.querySelectorAll(`#gameBoard form .board .field.grid .column input:checked`).forEach((checkedInput) => {
+            checkedInput.checked = false;
+        })
+        tokens.forEach((token) => {
+            tokenSeeding(token);
+        })
+    }
+}
+
+function tokenSeeding(token) {
+    const uncheckedColInputs= document.querySelectorAll(`#gameBoard form .board .field.grid .column[data-col="${token.board_column}"] input:not(:checked)`);
+    let tokenClass = board_state.player_id === token.player_id ? board_state.player_class : null;
+    if (tokenClass === null) {
+        if ( board_state.player_class === "p1") {
+            tokenClass = "p2";
+        }else {
+            tokenClass = "p1";
+        }
+    }
+    let lastUncheckedInput = Array.from(uncheckedColInputs).pop();
+    lastUncheckedInput.checked = true;
+    let nextEl = lastUncheckedInput.nextElementSibling;
+    if (nextEl.classList.contains('disc')) {
+        nextEl.classList.add(tokenClass);
     }
 }
 

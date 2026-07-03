@@ -1,4 +1,11 @@
 #gameBoard {
+    &.p1 .disc{
+        color: #ffd918;
+    }
+    &.p2 .disc {
+        color: #ff3b18;
+    }
+
     .board {
         position: relative;
         width: 450px;
@@ -142,6 +149,17 @@
     input:checked + .disc:nth-of-type(6n),
     input:checked + input + .disc:nth-of-type(6n) {
         transition: top 0.32s cubic-bezier(0.56, 0, 1, 1);
+    }
+
+    &.disabled {
+        input:hover {
+            cursor: not-allowed;
+        }
+        input:not(:checked) + .disc {
+            visibility: hidden;
+            opacity: 0;
+            color: transparent;
+        }
     }
 }
 
