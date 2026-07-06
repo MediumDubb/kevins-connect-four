@@ -104,6 +104,26 @@ class BoardRepo
 
     }
 
+    public function updateWinner(string $winner_id, string $board_id): void
+    {
+        try {
+            $this->db->run(
+                "UPDATE boards
+                    SET winner_id = UUID_TO_BIN(:winner_id, 1),
+                        board_finished = 1
+                    WHERE id = UUID_TO_BIN(:id, 1)
+                    AND board_finished = 0",
+                [
+                    'winner_id' => $winner_id,
+                    'id' => $board_id
+                ]
+            );
+        } catch (PDOException $e) {
+            $test = "";
+        }
+
+    }
+
     public function alternatePlayer(string $board_id): ?string
     {
         $stmt = $this->db->run(
@@ -151,7 +171,6 @@ class BoardRepo
                     BIN_TO_UUID(player_one_id, 1) AS player_one_id
                     FROM boards
                     WHERE id = :room_bin
-                    AND board_finished = 0
                     LIMIT 1",
             [
                 'room_bin' => $room_bin,

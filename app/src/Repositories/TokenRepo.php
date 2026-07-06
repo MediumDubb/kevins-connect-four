@@ -15,7 +15,6 @@ class TokenRepo
         'id',
         'board_id',
         'player_id',
-        'board_row',
         'board_column',
     ];
 

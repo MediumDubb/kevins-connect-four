@@ -1,6 +1,7 @@
 let polling, poll_interval_id, inputs, board_state, abort_controller;
 board_state = {
     player_id: null,
+    winner_id: null,
     player_class: null,
     room_ready: false,
     my_turn: false,
@@ -75,12 +76,16 @@ function setBoardState(resObj) {
         board_state.room_ready = resObj.data.room_ready
         board_state.my_turn = resObj.data.my_turn
         board_state.tokens = resObj.data.tokens
+        board_state.winner_id = resObj.data.winner_id
         board_state.board_finished = resObj.data.board_finished
         document.getElementById("gameBoard").classList.add(board_state.player_class);
         if (!board_state.my_turn) {
             document.getElementById("gameBoard").classList.add('disabled');
         } else {
             document.getElementById("gameBoard").classList.remove('disabled');
+        }
+        if (board_state.winner_id !== null) {
+            alert("Winner " + board_state.winner_id);
         }
         renderBoard(board_state.tokens);
     } else {
@@ -164,7 +169,7 @@ function tokenSeeding(token) {
     if (tokenClass === null) {
         if ( board_state.player_class === "p1") {
             tokenClass = "p2";
-        }else {
+        } else {
             tokenClass = "p1";
         }
     }

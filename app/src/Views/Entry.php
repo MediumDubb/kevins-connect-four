@@ -33,7 +33,7 @@
 </div>
 <!-- Link your JavaScript file here -->
 <script type="text/javascript">
-    const errors = <?php $this->errors->getSerializedErrors() ?>;
+    const errors = `<?php echo $this->errors->getSerializedErrors() ?>`;
     const errObj = JSON.parse(errors);
 
     if (getJsonLength(errObj)) {
