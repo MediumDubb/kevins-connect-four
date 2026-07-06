@@ -1,4 +1,5 @@
 let polling, poll_interval_id, inputs, board_state, abort_controller;
+
 board_state = {
     player_id: null,
     winner_id: null,
@@ -14,11 +15,19 @@ inputs = document.querySelectorAll('#gameBoard form .board .column input[type=ra
 poll_interval_id = null;
 const base_uri = window.location.protocol + "//" + window.location.hostname + "/api";
 const room_id = getRoomID();
+
 const setInputsClickEvent = (e) => {
-    e.preventDefault();
+    // todo - prevent multiple click events from being spammed
+    e.currentTarget.checked = false;
+    e.currentTarget.nextElementSibling.style.top = e.currentTarget.nextElementSibling.dataset.top;
     const col = parseInt(e.currentTarget.parentElement.dataset.col);
     if (! (document.querySelectorAll(`form .board .grid .column[data-col="${col}"] input[type=radio]:checked`).length >= 6) ) {
-        setToken(col);
+        setToken(col, e.currentTarget).then((r) => {
+            if (r.error === null) {
+                r.input.checked = true
+            }
+            r.input.nextElementSibling.style.removeProperty('top');
+        });
     }
 }
 
@@ -78,7 +87,9 @@ function setBoardState(resObj) {
         board_state.tokens = resObj.data.tokens
         board_state.winner_id = resObj.data.winner_id
         board_state.board_finished = resObj.data.board_finished
+
         document.getElementById("gameBoard").classList.add(board_state.player_class);
+
         if (!board_state.my_turn) {
             document.getElementById("gameBoard").classList.add('disabled');
         } else {
@@ -89,6 +100,9 @@ function setBoardState(resObj) {
 
         if (board_state.winner_id !== null) {
             alert("Winner " + board_state.winner_id);
+            inputs.forEach(radio => {
+                radio.disabled = true;
+            });
         }
     } else {
         board_state.errors = resObj.data.error;
@@ -96,7 +110,7 @@ function setBoardState(resObj) {
     }
 }
 
-async function setToken(column)
+async function setToken(column, input)
 {
     const endpoint = base_uri + '/drop-token';
     const formBody = new URLSearchParams({
@@ -120,10 +134,12 @@ async function setToken(column)
             startPolling();
             abortBoardEvents();
         }
+
+        return {input: input, error: null};
     } catch (err) {
         console.log('Token post failed: ' + err);
+        return {input: input, error: "Something went wrong"};
     }
-
 }
 
 function setBoardEvents()
@@ -132,11 +148,12 @@ function setBoardEvents()
         abort_controller.abort();
     }
 
-    abort_controller = new AbortController();
-
-    inputs.forEach(radio => {
-        radio.addEventListener('click', setInputsClickEvent, { signal: abort_controller.signal })
-    });
+    if (!board_state.board_finished) { // if board is not finished assign click events
+        abort_controller = new AbortController();
+        inputs.forEach(radio => {
+            radio.addEventListener('click', setInputsClickEvent, { signal: abort_controller.signal })
+        });
+    }
 }
 
 function abortBoardEvents()

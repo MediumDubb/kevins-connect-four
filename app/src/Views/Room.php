@@ -18,107 +18,107 @@
                 <div class="field grid">
                     <div class="column" data-col="0">
                         <input type="radio" name="slot1" tabindex="-1" required>
-                        <div class="disc"></div>
+                        <div class="disc" data-top="-75px"></div>
                         <input type="radio" name="slot8" tabindex="-1" required>
-                        <div class="disc"></div>
+                        <div class="disc" data-top="-135px"></div>
                         <input type="radio" name="slot15" tabindex="-1" required>
-                        <div class="disc"></div>
+                        <div class="disc" data-top="-195px"></div>
                         <input type="radio" name="slot22" tabindex="-1" required>
-                        <div class="disc"></div>
+                        <div class="disc" data-top="-255px"></div>
                         <input type="radio" name="slot29" tabindex="-1" required>
-                        <div class="disc"></div>
+                        <div class="disc" data-top="-315px"></div>
                         <input type="radio" name="slot36" tabindex="-1" required>
-                        <div class="disc"></div>
+                        <div class="disc" data-top="-375px"></div>
                     </div>
                     <!--Column 1 after-->
                     <div class="column" data-col="1">
                         <input type="radio" name="slot2" tabindex="-1" required>
-                        <div class="disc"></div>
+                        <div class="disc" data-top="-75px"></div>
                         <input type="radio" name="slot9" tabindex="-1" required>
-                        <div class="disc"></div>
+                        <div class="disc" data-top="-135px"></div>
                         <input type="radio" name="slot16" tabindex="-1" required>
-                        <div class="disc"></div>
+                        <div class="disc" data-top="-195px"></div>
                         <input type="radio" name="slot23" tabindex="-1" required>
-                        <div class="disc"></div>
+                        <div class="disc" data-top="-255px"></div>
                         <input type="radio" name="slot30" tabindex="-1" required>
-                        <div class="disc"></div>
+                        <div class="disc" data-top="-315px"></div>
                         <input type="radio" name="slot37" tabindex="-1" required>
-                        <div class="disc"></div>
+                        <div class="disc" data-top="-375px"></div>
                     </div>
                     <!--Column 2 after-->
                     <div class="column" data-col="2">
                         <input type="radio" name="slot3" tabindex="-1" required>
-                        <div class="disc"></div>
+                        <div class="disc" data-top="-75px"></div>
                         <input type="radio" name="slot10" tabindex="-1" required>
-                        <div class="disc"></div>
+                        <div class="disc" data-top="-135px"></div>
                         <input type="radio" name="slot17" tabindex="-1" required>
-                        <div class="disc"></div>
+                        <div class="disc" data-top="-195px"></div>
                         <input type="radio" name="slot24" tabindex="-1" required>
-                        <div class="disc"></div>
+                        <div class="disc" data-top="-255px"></div>
                         <input type="radio" name="slot31" tabindex="-1" required>
-                        <div class="disc"></div>
+                        <div class="disc" data-top="-315px"></div>
                         <input type="radio" name="slot38" tabindex="-1" required>
-                        <div class="disc"></div>
+                        <div class="disc" data-top="-375px"></div>
                     </div>
                     <!--Column 3 after-->
                     <div class="column" data-col="3">
                         <input type="radio" name="slot4" tabindex="-1" required>
-                        <div class="disc"></div>
+                        <div class="disc" data-top="-75px"></div>
                         <input type="radio" name="slot11" tabindex="-1" required>
-                        <div class="disc"></div>
+                        <div class="disc" data-top="-135px"></div>
                         <input type="radio" name="slot18" tabindex="-1" required>
-                        <div class="disc"></div>
+                        <div class="disc" data-top="-195px"></div>
                         <input type="radio" name="slot25" tabindex="-1" required>
-                        <div class="disc"></div>
+                        <div class="disc" data-top="-255px"></div>
                         <input type="radio" name="slot32" tabindex="-1" required>
-                        <div class="disc"></div>
+                        <div class="disc" data-top="-315px"></div>
                         <input type="radio" name="slot39" tabindex="-1" required>
-                        <div class="disc"></div>
+                        <div class="disc" data-top="-375px"></div>
                     </div>
                     <!--Column 4 after-->
                     <div class="column" data-col="4">
                         <input type="radio" name="slot5" tabindex="-1" required>
-                        <div class="disc"></div>
+                        <div class="disc" data-top="-75px"></div>
                         <input type="radio" name="slot12" tabindex="-1" required>
-                        <div class="disc"></div>
+                        <div class="disc" data-top="-135px"></div>
                         <input type="radio" name="slot19" tabindex="-1" required>
-                        <div class="disc"></div>
+                        <div class="disc" data-top="-195px"></div>
                         <input type="radio" name="slot26" tabindex="-1" required>
-                        <div class="disc"></div>
+                        <div class="disc" data-top="-255px"></div>
                         <input type="radio" name="slot33" tabindex="-1" required>
-                        <div class="disc"></div>
+                        <div class="disc" data-top="-315px"></div>
                         <input type="radio" name="slot40" tabindex="-1" required>
-                        <div class="disc"></div>
+                        <div class="disc" data-top="-375px"></div>
                     </div>
                     <!--Column 5 after-->
                     <div class="column" data-col="5">
                         <input type="radio" name="slot6" tabindex="-1" required>
-                        <div class="disc"></div>
+                        <div class="disc" data-top="--75px"></div>
                         <input type="radio" name="slot13" tabindex="-1" required>
-                        <div class="disc"></div>
+                        <div class="disc" data-top="-135px"></div>
                         <input type="radio" name="slot20" tabindex="-1" required>
-                        <div class="disc"></div>
+                        <div class="disc" data-top="-195px"></div>
                         <input type="radio" name="slot27" tabindex="-1" required>
-                        <div class="disc"></div>
+                        <div class="disc" data-top="-255px"></div>
                         <input type="radio" name="slot34" tabindex="-1" required>
-                        <div class="disc"></div>
+                        <div class="disc" data-top="-315px"></div>
                         <input type="radio" name="slot41" tabindex="-1" required>
-                        <div class="disc"></div>
+                        <div class="disc" data-top="-375px"></div>
                     </div>
                     <!--Column 6 after-->
                     <div class="column" data-col="6">
                         <input type="radio" name="slot7" tabindex="-1" required>
-                        <div class="disc"></div>
+                        <div class="disc" data-top="-75px"></div>
                         <input type="radio" name="slot14" tabindex="-1" required>
-                        <div class="disc"></div>
+                        <div class="disc" data-top="-135px"></div>
                         <input type="radio" name="slot21" tabindex="-1" required>
-                        <div class="disc"></div>
+                        <div class="disc" data-top="-195px"></div>
                         <input type="radio" name="slot28" tabindex="-1" required>
-                        <div class="disc"></div>
+                        <div class="disc" data-top="-255px"></div>
                         <input type="radio" name="slot35" tabindex="-1" required>
-                        <div class="disc"></div>
+                        <div class="disc" data-top="-315px"></div>
                         <input type="radio" name="slot42" tabindex="-1" required>
-                        <div class="disc"></div>
+                        <div class="disc" data-top="-375px"></div>
                     </div>
                     <!--Column 7 after-->
                     <div class="column"></div>
