@@ -84,10 +84,12 @@ function setBoardState(resObj) {
         } else {
             document.getElementById("gameBoard").classList.remove('disabled');
         }
+
+        renderBoard(board_state.tokens);
+
         if (board_state.winner_id !== null) {
             alert("Winner " + board_state.winner_id);
         }
-        renderBoard(board_state.tokens);
     } else {
         board_state.errors = resObj.data.error;
         displayerErrors();

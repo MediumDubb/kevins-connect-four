@@ -203,7 +203,7 @@ class BoardRepo
         return $stmt->fetch(PDO::FETCH_ASSOC) ?: null;
     }
 
-    public function getBoardTokens(string $room_id): array
+    public function getTokensByBoardID(string $room_id): array
     {
         $room_bin = $this->getBIN($room_id);
 

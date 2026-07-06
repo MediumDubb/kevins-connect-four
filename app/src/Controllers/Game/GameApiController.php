@@ -4,8 +4,6 @@ namespace MediumDubb\ConnectFour\Controllers\Game;
 
 use JetBrains\PhpStorm\NoReturn;
 use MediumDubb\ConnectFour\Controllers\Core\CoreController;
-use MediumDubb\ConnectFour\Repositories\BoardRepo;
-use MediumDubb\ConnectFour\Repositories\TokenRepo;
 
 class GameApiController extends CoreController
 {
@@ -15,17 +13,17 @@ class GameApiController extends CoreController
         $room_id = $_POST['room_id'] ?? null;
 
         if (!is_null($room_id)) {
-            $boardRepo = new BoardRepo($this->db);
             $tokenObj = $this->getTokenObj();
             if (!is_null($tokenObj)) {
-                if ($winnerId = $this->getWinnerId($boardRepo->getBoardTokens($room_id), $tokenObj)) {
-                    $boardRepo->updateWinner($winnerId, $room_id);
+                // check for a winner. If one exists, then we do not want to update the players
+                if ($winnerId = $this->getWinnerId($this::getBoardRepository()->getTokensByBoardID($room_id), $tokenObj)) {
+                    $this::getBoardRepository()->updateWinner($winnerId, $room_id);
                 } else {
-                    $next_player_id = $boardRepo->alternatePlayer($room_id);
-                    $boardRepo->updatePlayerTurn($room_id, $next_player_id);
+                    $next_player_id = $this::getBoardRepository()->alternatePlayer($room_id);
+                    $this::getBoardRepository()->updatePlayerTurn($room_id, $next_player_id);
                 }
-                $success = new TokenRepo($this->db)->setToken($tokenObj);
-                if ($success) {
+
+                if ($this::getTokenRepository()->setToken($tokenObj)) {
                     $this->getBoardSate();
                 }
             }
@@ -37,8 +35,9 @@ class GameApiController extends CoreController
     public function getBoardSate(): void
     {
         $result = null;
+
         if ($room_id = $this->getSafeRoomID()) {
-            $room_row = new BoardRepo($this->db)->getBoardState($room_id);
+            $room_row = $this::getBoardRepository()->getBoardState($room_id);
             if ($this->errors->isValid() && is_array($room_row)) {
                 $result['result'] = ['data' => $this->getBoardStateObj($room_row, $room_id)];
             } else {
@@ -55,21 +54,21 @@ class GameApiController extends CoreController
     private function getBoardStateObj(array $room_row, string $room_id): array
     {
         $player_id = $this->getUid();
-        $tokens = new BoardRepo($this->db)->getBoardTokens($room_id);
-        $playerClass = $this->getPlayerClass($player_id, $room_id);
+        $tokens = $this::getBoardRepository()->getTokensByBoardID($room_id);
+        $player_class = $this->getPlayerClass($player_id, $room_id);
         $my_turn = ($player_id === $room_row['current_player_id']);
         $board_finished = ($room_row['board_finished'] !== 0);
         $room_ready = ($room_row['player_one_id'] && $room_row['player_two_id']);
         $winner_id = $room_row['winner_id'];
 
         return [
-            "player_id" => $player_id,
-            "player_class" => $playerClass,
-            "room_ready" => $room_ready,
-            "my_turn" => $my_turn,
-            "board_finished" => $board_finished,
-            "winner_id" => $winner_id,
-            "tokens" => $tokens,
+            "player_id"         => $player_id,
+            "player_class"      => $player_class,
+            "room_ready"        => $room_ready,
+            "my_turn"           => $my_turn,
+            "board_finished"    => $board_finished,
+            "winner_id"         => $winner_id,
+            "tokens"            => $tokens,
         ];
     }
 
@@ -77,9 +76,9 @@ class GameApiController extends CoreController
     {
         if (isset($_POST)) {
             return [
-                "room_id" => $_POST['room_id'],
-                "player_id" => $this->getUid() ?? $_POST['player_id'],
-                "board_column" => $_POST['board_column'],
+                "room_id"       => $_POST['room_id'],
+                "player_id"     => $this->getUid() ?? $_POST['player_id'],
+                "board_column"  => $_POST['board_column'],
             ];
         }
 
@@ -115,28 +114,35 @@ class GameApiController extends CoreController
 
     private function getPlayerClass(string $player_id, string $room_id): string
     {
-        return ($player_id === new BoardRepo($this->db)->getPlayerOne($room_id)) ? 'p1' : 'p2';
+        return ($player_id === $this::getBoardRepository()->getPlayerOne($room_id)) ? 'p1' : 'p2';
     }
 
+    /**
+     * @param array $tokens
+     * @param array $currentToken
+     * @return bool|string
+     * get current token index
+     * check row forward/inverse
+     * check col forward/inverse
+     * check diag left forward/inverse
+     * check diag right forward/inverse
+     */
     private function getWinnerId(array $tokens, array $currentToken): bool|string
     {
         // after 7 tokens have been placed, check all diagonal, column, and row options for last token placed
         $player_id = $this->getUid();
         $tokens[] = $currentToken;
+
         if (count($tokens) >= 7) {
             $boardArray = $this->getFlatTokenArray($tokens, (count($tokens) - 1));
             $currentTokenIndex = null;
+
             foreach ($boardArray as $token_index => $token_data) {
                 if ($token_data !== null && $token_data['last_move']) {
                     $currentTokenIndex = $token_index;
                     break;
                 }
             }
-
-            // row forward/inverse
-            // col forward/inverse
-            // diag left forward/inverse
-            // diag right forward/inverse
 
             if (
                 ($currentTokenIndex >= 0 && $currentTokenIndex <= 41) &&
@@ -239,14 +245,18 @@ class GameApiController extends CoreController
         return false;
     }
 
-    /*
-        [  0,  1,  2,  3,  4,  5,  6 ]
-        [  7,  8,  9, 10, 11, 12, 13 ]
-        [ 14, 15, 16, 17, 18, 19, 20 ]
-        [ 21, 22, 23, 24, 25, 26, 27 ]
-        [ 28, 29, 30, 31, 32, 33, 34 ]
-        [ 35, 36, 37, 38, 39, 40, 41 ]
-        */
+    /**
+     * [  0,  1,  2,  3,  4,  5,  6 ]
+     * [  7,  8,  9, 10, 11, 12, 13 ]
+     * [ 14, 15, 16, 17, 18, 19, 20 ]
+     * [ 21, 22, 23, 24, 25, 26, 27 ]
+     * [ 28, 29, 30, 31, 32, 33, 34 ]
+     * [ 35, 36, 37, 38, 39, 40, 41 ]
+     *
+     * We are trying to make a flat array of the whole board
+     * this will be inversed from the board view for users, tokens will go from top down instead of bottom up
+     * Once a flat structure is achieved we can use some simple math to check for a winner
+    */
     private static function getFlatTokenArray(array $tokens, int $lastMoveKey): array
     {
         $newArray = [];
