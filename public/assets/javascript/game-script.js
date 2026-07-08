@@ -48,6 +48,7 @@ function startPolling()
         return;
     }
 
+    disableRadios();
     polling = true;
     pollBoard();
 }
