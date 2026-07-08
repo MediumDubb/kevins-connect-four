@@ -18,6 +18,7 @@ const room_id = getRoomID();
 
 const setInputsClickEvent = (e) => {
     abortBoardEvents();
+    disableRadios();
     e.currentTarget.checked = false;
     e.currentTarget.nextElementSibling.style.top = e.currentTarget.nextElementSibling.dataset.top;
     const col = parseInt(e.currentTarget.parentElement.dataset.col);
@@ -25,8 +26,6 @@ const setInputsClickEvent = (e) => {
         setToken(col, e.currentTarget).then((r) => {
             if (r.error === null) {
                 r.input.checked = true
-            } else {
-                setBoardEvents();
             }
             r.input.nextElementSibling.style.removeProperty('top');
         });
@@ -69,6 +68,7 @@ async function pollBoard()
             clearInterval(poll_interval_id);
             poll_interval_id = null;
             setBoardEvents();
+            enableRadios();
             return;
         }
     } catch (error) {
@@ -205,4 +205,17 @@ function tokenSeeding(token) {
 function displayerErrors()
 {
     return "Errors";
+}
+
+function disableRadios()
+{
+    inputs.forEach(radio => {
+        radio.disabled = true;
+    })
+}
+function enableRadios()
+{
+    inputs.forEach(radio => {
+        radio.disabled = false;
+    })
 }
