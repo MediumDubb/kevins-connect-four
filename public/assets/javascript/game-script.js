@@ -17,7 +17,7 @@ const base_uri = window.location.protocol + "//" + window.location.hostname + "/
 const room_id = getRoomID();
 
 const setInputsClickEvent = (e) => {
-    // todo - prevent multiple click events from being spammed
+    abortBoardEvents();
     e.currentTarget.checked = false;
     e.currentTarget.nextElementSibling.style.top = e.currentTarget.nextElementSibling.dataset.top;
     const col = parseInt(e.currentTarget.parentElement.dataset.col);
@@ -25,6 +25,8 @@ const setInputsClickEvent = (e) => {
         setToken(col, e.currentTarget).then((r) => {
             if (r.error === null) {
                 r.input.checked = true
+            } else {
+                setBoardEvents();
             }
             r.input.nextElementSibling.style.removeProperty('top');
         });
