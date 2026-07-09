@@ -31,34 +31,6 @@
         </div>
     </div>
 </div>
-<!-- Link your JavaScript file here -->
-<script type="text/javascript">
-    const errors = `<?php echo $this->errors->getSerializedErrors() ?>`;
-    const errObj = JSON.parse(errors);
-
-    if (getJsonLength(errObj)) {
-        errObj.forEach((key, val) => {
-            alert(val);
-        })
-    }
-
-    function getJsonLength(data) {
-        if (!data) return 0;
-
-        // Directly return length if it is an array
-        if (Array.isArray(data)) {
-            return data.length;
-        }
-
-        // Return key count if it is an object
-        if (typeof data === 'object') {
-            return Object.keys(data).length;
-        }
-
-        return 0;
-    }
-
-</script>
 <script type="text/javascript" src="http://c4.local/assets/javascript/form-script.js"></script>
 </body>
 </html>
