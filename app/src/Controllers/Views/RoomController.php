@@ -40,6 +40,8 @@ class RoomController extends CoreController
             if ($room_id) {
                 $redirect_url = $this->getRoomRedirect($room_id);
                 header("Location: $redirect_url");
+            } else {
+                header("Location: /");
             }
         } else {
             echo "Incorrect request";
@@ -100,8 +102,6 @@ class RoomController extends CoreController
             $room_id = $board_repo->createBoard($playerID);
         } else if (!is_null($room_id)) {
             $board_repo->joinBoard($room_id, $playerID);
-        } else {
-            header("Location: /");
         }
 
         return $room_id;
@@ -117,34 +117,5 @@ class RoomController extends CoreController
         }
 
         return false;
-    }
-
-    private function createRoom()
-    {
-        // accepts empty POST
-        // check for valid user ID in session
-        // if none exist,
-        // then create one
-        // store char id in session
-        // generate new board row
-        // get board ID string
-
-        // append to URL and redirect user to board
-        // OR
-        // save game state object in JS that's updated from server @ start of every turn
-    }
-
-    private function joinRoom()
-    {
-        // accepts GET with board ID
-        // check for valid user ID in session
-        // if none exist,
-        // then create one
-        // store char id in session
-
-        // take ID provided and
-        // append to URL and redirect user to board
-        // OR
-        // save game state object in JS that's updated from server @ start of every turn
     }
 }
