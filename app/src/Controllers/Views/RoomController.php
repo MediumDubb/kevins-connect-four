@@ -37,8 +37,10 @@ class RoomController extends CoreController
             $action = $this->getValidatedAction();
             $player_id = $this->getPlayerID();
             $room_id = $this->getRoomID($player_id, $action);
-            $redirect_url = $this->getRoomRedirect($room_id);
-            header("Location: $redirect_url");
+            if ($room_id) {
+                $redirect_url = $this->getRoomRedirect($room_id);
+                header("Location: $redirect_url");
+            }
         } else {
             echo "Incorrect request";
         }
@@ -89,17 +91,17 @@ class RoomController extends CoreController
 
         if (is_null($room_id) && $action === "join") {
             $room_id = $board_repo->getOpenBoardID();
-            if (!is_null($room_id)) {
-                $board_repo->joinBoard($room_id, $playerID);
-            } else {
+            if (is_null($room_id)) {
                 $this->errors->setError('No open rooms available');
             }
         }
 
         if (is_null($room_id) && $action === "create") {
             $room_id = $board_repo->createBoard($playerID);
-        } else {
+        } else if (!is_null($room_id)) {
             $board_repo->joinBoard($room_id, $playerID);
+        } else {
+            header("Location: /");
         }
 
         return $room_id;
