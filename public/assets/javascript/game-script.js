@@ -18,7 +18,7 @@ const room_id = getRoomID();
 
 const setInputsClickEvent = (e) => {
     abortBoardEvents();
-    disableRadios();
+    disableBoard();
     e.currentTarget.checked = false;
     e.currentTarget.nextElementSibling.style.top = e.currentTarget.nextElementSibling.dataset.top;
     const col = parseInt(e.currentTarget.parentElement.dataset.col);
@@ -33,10 +33,12 @@ const setInputsClickEvent = (e) => {
     }
 }
 
-// entry/init
+// =============== entry/init =================
 document.addEventListener("DOMContentLoaded", () => {
     startPolling();
 });
+
+// ================ helpers ===================
 
 function getRoomID()
 {
@@ -49,7 +51,7 @@ function startPolling()
         return;
     }
 
-    disableRadios();
+    disableBoard();
     polling = true;
     pollBoard();
 }
@@ -63,15 +65,14 @@ async function pollBoard()
     try {
         const response = await fetch(base_uri + '/get-state?room_id=' + room_id);
         const data = JSON.parse(await response.text());
-        console.log(data);
         setBoardState(data.result);
-        if (board_state.my_turn || board_state.board_finished) {
-            polling = false;
-            clearInterval(poll_interval_id);
-            poll_interval_id = null;
+        if (board_state.my_turn) {
+            resetPolling();
             setBoardEvents();
-            enableRadios();
+            enableBoard();
             return;
+        } else if (board_state.board_finished) {
+            resetPolling();
         }
     } catch (error) {
         console.error('Polling failed:', error);
@@ -84,36 +85,16 @@ async function pollBoard()
 
 function setBoardState(resObj) {
     if (resObj.data) {
-        board_state.player_id = resObj.data.player_id
-        board_state.player_class = resObj.data.player_class
-        board_state.room_ready = resObj.data.room_ready
-        board_state.my_turn = resObj.data.my_turn
-        board_state.tokens = resObj.data.tokens
-        board_state.winner_id = resObj.data.winner_id
-        board_state.board_finished = resObj.data.board_finished
+        hydrateStateObj(resObj);
 
         document.getElementById("gameBoard").classList.add(board_state.player_class);
 
-        if (!board_state.my_turn) {
-            document.getElementById("gameBoard").classList.add('disabled');
-        } else {
-            document.getElementById("gameBoard").classList.remove('disabled');
-        }
-
-        document.getElementById("my_turn").innerText = board_state.my_turn ? ' Yes' : ' No';
-
-        if (board_state.winner_id) {
-            document.getElementById("winner").innerText = board_state.player_id ===  board_state.winner_id ? ' Winner' : ' Loser';
-            document.getElementById("gameBoard").classList.remove('disabled');
-        }
+        document.getElementById("my_turn").innerText = board_state.my_turn && (board_state.winner_id === null) ? ' Yes' : ' No';
 
         renderBoard(board_state.tokens);
 
-        if (board_state.winner_id !== null) {
-            alert("Winner " + board_state.winner_id);
-            inputs.forEach(radio => {
-                radio.disabled = true;
-            });
+        if (board_state.winner_id) {
+            document.getElementById("winner").innerText = board_state.player_id ===  board_state.winner_id ? ' Winner' : ' Loser';
         }
     } else {
         board_state.errors = resObj.data.error;
@@ -137,11 +118,13 @@ async function setToken(column, input)
             },
             body: formBody
         });
+
         const data = JSON.parse(await response.text());
 
         setBoardState(data.result);
 
         if (!board_state.my_turn && !board_state.board_finished) {
+            disableBoard();
             startPolling();
             abortBoardEvents();
         }
@@ -216,24 +199,45 @@ function displayerErrors()
     return "Errors";
 }
 
-function disableRadios()
-{
-    inputs.forEach(radio => {
-        radio.disabled = true;
-    })
-}
-function enableRadios()
-{
-    inputs.forEach(radio => {
-        radio.disabled = false;
-    })
-}
-
 function tokenSound()
 {
     const sound = new Audio('/assets/sounds/token-drop-c4.mp3');
 
     sound.play().catch(error => {
         console.log("Playback blocked until user interacts with the page:", error);
+    });
+}
+
+function hydrateStateObj(resObj)
+{
+    board_state.player_id = resObj.data.player_id
+    board_state.player_class = resObj.data.player_class
+    board_state.room_ready = resObj.data.room_ready
+    board_state.my_turn = resObj.data.my_turn
+    board_state.tokens = resObj.data.tokens
+    board_state.winner_id = resObj.data.winner_id
+    board_state.board_finished = resObj.data.board_finished
+}
+
+function resetPolling()
+{
+    polling = false;
+    clearInterval(poll_interval_id);
+    poll_interval_id = null;
+}
+
+function disableBoard()
+{
+    document.getElementById("gameBoard").classList.add('disabled');
+    inputs.forEach(radio => {
+        radio.disabled = true;
+    });
+}
+
+function enableBoard()
+{
+    document.getElementById("gameBoard").classList.remove('disabled');
+    inputs.forEach(radio => {
+        radio.disabled = false;
     });
 }
