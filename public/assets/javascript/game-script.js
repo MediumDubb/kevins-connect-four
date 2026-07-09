@@ -26,6 +26,7 @@ const setInputsClickEvent = (e) => {
         setToken(col, e.currentTarget).then((r) => {
             if (r.error === null) {
                 r.input.checked = true
+                tokenSound();
             }
             r.input.nextElementSibling.style.removeProperty('top');
         });
@@ -154,7 +155,7 @@ function setBoardEvents()
     if (!board_state.board_finished) { // if board is not finished assign click events
         abort_controller = new AbortController();
         inputs.forEach(radio => {
-            radio.addEventListener('click', setInputsClickEvent, { signal: abort_controller.signal })
+            radio.addEventListener('click', setInputsClickEvent, { signal: abort_controller.signal });
         });
     }
 }
@@ -219,4 +220,13 @@ function enableRadios()
     inputs.forEach(radio => {
         radio.disabled = false;
     })
+}
+
+function tokenSound()
+{
+    const sound = new Audio('/assets/sounds/token-drop-c4.mp3');
+
+    sound.play().catch(error => {
+        console.log("Playback blocked until user interacts with the page:", error);
+    });
 }
