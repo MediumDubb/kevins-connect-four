@@ -12,7 +12,6 @@
 <!-- Your web page content goes here -->
 <div class="container" id="gameBoard">
     <div class="flex-center">
-        <p>Current Player:<span id="player_name"></span></p>
         <form>
             <div class="board">
                 <div class="field grid">
@@ -126,10 +125,16 @@
                 <div class="front"></div>
             </div>
         </form>
+        <div class="menu dark-bg">
+            <div class="contain">
+                <p>My turn?<span id="my_turn"></span></p>
+                <p><span id="winner"></span></p>
+            </div>
+            <p>The <a href="https://codepen.io/finnhvman/pen/xXpzVN" target="_blank">board</a> @finnhvman</p>
+        </div>
     </div>
 </div>
 <!-- Link your JavaScript file here -->
-<p>The <a href="https://codepen.io/finnhvman/pen/xXpzVN" target="_blank">board</a> was re-purposed from the talented <a href="https://codepen.io/finnhvman/" target="_blank">@finnhvman</a>'s pure css connect 4 board, because I'm not a designer and it's awesome.</p>
 <script type="text/javascript" src="http://c4.local/assets/javascript/game-script.js"></script>
 </body>
 </html>

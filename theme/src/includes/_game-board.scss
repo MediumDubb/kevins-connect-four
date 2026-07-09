@@ -10,6 +10,38 @@
         position: relative;
         width: 450px;
         height: 450px;
+
+        @media screen and (max-width: 449px) {
+            display: none;
+        }
+    }
+
+    .menu {
+        margin: 20px auto 0 auto;
+        max-width: 410px;
+        padding: 20px;
+
+        .contain {
+            display: flex;
+            justify-content: space-between;
+        }
+
+        a {
+            color: white;
+            transition: .3s;
+            &:hover {
+                color: #2d3fb6;
+            }
+        }
+
+        &.dark-bg {
+            background-color: #a89bda;
+            color: white;
+        }
+
+        &.p-0 {
+            padding:0;
+        }
     }
 
     .field {

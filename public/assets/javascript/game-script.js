@@ -100,6 +100,13 @@ function setBoardState(resObj) {
             document.getElementById("gameBoard").classList.remove('disabled');
         }
 
+        document.getElementById("my_turn").innerText = board_state.my_turn ? ' Yes' : ' No';
+
+        if (board_state.winner_id) {
+            document.getElementById("winner").innerText = board_state.player_id ===  board_state.winner_id ? ' Winner' : ' Loser';
+            document.getElementById("gameBoard").classList.remove('disabled');
+        }
+
         renderBoard(board_state.tokens);
 
         if (board_state.winner_id !== null) {
