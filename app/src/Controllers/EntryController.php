@@ -1,13 +1,10 @@
 <?php
 
-namespace MediumDubb\ConnectFour\Controllers\Views;
+namespace MediumDubb\ConnectFour\Controllers;
 
 use JetBrains\PhpStorm\NoReturn;
-use MediumDubb\ConnectFour\Controllers\Core\CoreController;
-use MediumDubb\ConnectFour\Repositories\BoardRepo;
-use MediumDubb\ConnectFour\Repositories\PlayerRepo;
 
-class RoomController extends CoreController
+class EntryController extends CoreController
 {
     private static array $user_actions = [
         'join',
@@ -16,14 +13,14 @@ class RoomController extends CoreController
 
     public function index(): void
     {
-        require_once (dirname(__DIR__, 2) . "/Views/Entry.php");
+        require_once (dirname(__DIR__) . "/Views/Entry.php");
     }
 
     public function gameRoom(string $id): void
     {
         $valid_player = $this->validatePlayerSession($id);
         if ($valid_player) {
-            require_once (dirname(__DIR__, 2) . "/Views/Room.php");
+            require_once (dirname(__DIR__) . "/Views/Room.php");
         } else {
             header("location: {$this->getBaseURI()}");
         }
@@ -65,11 +62,10 @@ class RoomController extends CoreController
         $name = $_POST['playerName'];
 
         if (is_null($user_id) && !empty($name)) {
-            $player_repo = new PlayerRepo($this->db);
-            $user_id = $player_repo->createPlayer($name);
+            $user_id = $this->getPlayerRepo()->createPlayer($name);
             $this->setUid($user_id);
         } else if (is_null($user_id) && empty($name)) {
-            $this->errors->setError('Player must have a name.');
+            $this->errorService->setError('Player must have a name.');
         }
 
         return $user_id;
@@ -89,19 +85,18 @@ class RoomController extends CoreController
     private function getRoomID(string $playerID, string $action): string
     {
         $room_id = empty($_POST['roomID']) ? null : $_POST['roomID'];
-        $board_repo = new BoardRepo($this->db);
 
         if (is_null($room_id) && $action === "join") {
-            $room_id = $board_repo->getOpenBoardID();
+            $room_id = $this->getBoardRepo()->getOpenBoardID();
             if (is_null($room_id)) {
-                $this->errors->setError('No open rooms available');
+                $this->errorService->setError('No open rooms available');
             }
         }
 
         if (is_null($room_id) && $action === "create") {
-            $room_id = $board_repo->createBoard($playerID);
+            $room_id = $this->getBoardRepo()->createBoard($playerID);
         } else if (!is_null($room_id)) {
-            $board_repo->joinBoard($room_id, $playerID);
+            $this->getBoardRepo()->joinBoard($room_id, $playerID);
         }
 
         return $room_id;
@@ -110,7 +105,7 @@ class RoomController extends CoreController
     public function validatePlayerSession(string $room_id): bool
     {
         if ($session_uid = $this->getUid()) {
-            $board_users = new BoardRepo($this->db)->getRoomPlayerIDs($room_id);
+            $board_users = $this->getBoardRepo()->getRoomPlayerIDs($room_id);
             if (is_array($board_users)) {
                 return in_array($session_uid, $board_users);
             }

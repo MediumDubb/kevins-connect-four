@@ -2,7 +2,6 @@
 
 namespace MediumDubb\ConnectFour\Repositories;
 
-use MediumDubb\ConnectFour\Domains\Board;
 use MediumDubb\ConnectFour\Database\PDOConnector;
 use PDO;
 use PDOException;
@@ -124,7 +123,7 @@ class BoardRepo
 
     }
 
-    public function alternatePlayer(string $board_id): ?string
+    public function getAlternatePlayerID(string $board_id): ?string
     {
         $stmt = $this->db->run(
             "SELECT 
@@ -220,11 +219,6 @@ class BoardRepo
         );
 
         return $stmt->fetchAll(PDO::FETCH_ASSOC) ?: [];
-    }
-
-    public function mapToModel(array $rowData): Board
-    {
-
     }
 
     private function getBIN(string $id)

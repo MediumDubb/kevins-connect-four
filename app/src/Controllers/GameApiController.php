@@ -1,12 +1,15 @@
 <?php
 
-namespace MediumDubb\ConnectFour\Controllers\Game;
+namespace MediumDubb\ConnectFour\Controllers;
 
 use JetBrains\PhpStorm\NoReturn;
-use MediumDubb\ConnectFour\Controllers\Core\CoreController;
 
 class GameApiController extends CoreController
 {
+    private int $playerID;
+    private int $roomID;
+    // todo Fix bug with win condition not triggering on first possible chance to win (probably wrong token index)
+
     #[NoReturn]
     public function dropToken(): void
     {
@@ -16,14 +19,14 @@ class GameApiController extends CoreController
             $tokenObj = $this->getTokenObj();
             if (!is_null($tokenObj)) {
                 // check for a winner. If one exists, then we do not want to update the players
-                if ($winnerId = $this->getWinnerId($this::getBoardRepository()->getTokensByBoardID($room_id), $tokenObj)) {
-                    $this::getBoardRepository()->updateWinner($winnerId, $room_id);
+                if ($winnerId = $this->getWinnerId($this->getBoardRepo()->getTokensByBoardID($room_id), $tokenObj)) {
+                    $this->getBoardRepo()->updateWinner($winnerId, $room_id);
                 } else {
-                    $next_player_id = $this::getBoardRepository()->alternatePlayer($room_id);
-                    $this::getBoardRepository()->updatePlayerTurn($room_id, $next_player_id);
+                    $next_player_id = $this->getBoardRepo()->getAlternatePlayerID($room_id);
+                    $this->getBoardRepo()->updatePlayerTurn($room_id, $next_player_id);
                 }
 
-                if ($this::getTokenRepository()->setToken($tokenObj)) {
+                if ($this->getTokenRepo()->setToken($tokenObj)) {
                     $this->getBoardSate();
                 }
             }
@@ -37,11 +40,17 @@ class GameApiController extends CoreController
         $result = null;
 
         if ($room_id = $this->getSafeRoomID()) {
-            $room_row = $this::getBoardRepository()->getBoardState($room_id);
-            if ($this->errors->isValid() && is_array($room_row)) {
-                $result['result'] = ['data' => $this->getBoardStateObj($room_row, $room_id)];
+            $room_row = $this->getBoardRepo()->getBoardState($room_id);
+            if ($this->errorService->isValid() && is_array($room_row)) {
+                $result['result'] = [
+                    'data' => $this->getBoardStateObj($room_row, $room_id),
+                    'error' => null
+                    ];
             } else {
-                $result['result'] = ['error' => 'Something went wrong'];
+                $result['result'] = [
+                    'data' => null,
+                    'error' => "Somethign went wrong"
+                ];;
             }
         }
 
@@ -54,7 +63,7 @@ class GameApiController extends CoreController
     private function getBoardStateObj(array $room_row, string $room_id): array
     {
         $player_id = $this->getUid();
-        $tokens = $this::getBoardRepository()->getTokensByBoardID($room_id);
+        $tokens = $this->getBoardRepo()->getTokensByBoardID($room_id);
         $player_class = $this->getPlayerClass($player_id, $room_id);
         $my_turn = ($player_id === $room_row['current_player_id']);
         $board_finished = ($room_row['board_finished'] !== 0);
@@ -95,17 +104,17 @@ class GameApiController extends CoreController
 
         if (!is_string($roomId)) {
             // Missing or invalid type
-            $this->errors->setError('Invalid room ID.');
+            $this->errorService->setError('Invalid room ID.');
             return null;
         }
 
         if ($roomId === '') {
-            $this->errors->setError('Missing room ID.');
+            $this->errorService->setError('Missing room ID.');
             return null;
         }
 
         if (!preg_match('/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i', $roomId)) {
-            $this->errors->setError('Invalid room ID format.');
+            $this->errorService->setError('Invalid room ID format.');
             return null;
         }
 
@@ -114,7 +123,7 @@ class GameApiController extends CoreController
 
     private function getPlayerClass(string $player_id, string $room_id): string
     {
-        return ($player_id === $this::getBoardRepository()->getPlayerOne($room_id)) ? 'p1' : 'p2';
+        return ($player_id === $this->getBoardRepo()->getPlayerOne($room_id)) ? 'p1' : 'p2';
     }
 
     /**

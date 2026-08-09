@@ -1,11 +1,9 @@
 <?php
 
 use Dotenv\Dotenv;
-use MediumDubb\ConnectFour\Controllers\Game\GameApiController;
-use MediumDubb\ConnectFour\Controllers\Views\RoomController;
+use MediumDubb\ConnectFour\Controllers\GameApiController;
+use MediumDubb\ConnectFour\Controllers\EntryController;
 use MediumDubb\ConnectFour\Core\AppRouter;
-use MediumDubb\ConnectFour\Database\PDOConnector;
-use MediumDubb\ConnectFour\Services\SessionService;
 
 // Find autoload.php
 if (file_exists(__DIR__ . '/../vendor/autoload.php')) {
@@ -22,16 +20,14 @@ $dotenv = Dotenv::createImmutable(dirname(__DIR__));
 $dotenv->load();
 
 $router = AppRouter::getRouter();
-$session = new SessionService();
-$db = new PDOConnector();
 
 // Define your routes here
-$router->get('/', [new RoomController($session, $db), 'index']);
-$router->get('/room/{id}', [new RoomController($session, $db), 'gameRoom']);
-$router->get('/api/get-state', [new GameApiController($session, $db), 'getBoardSate']);
+$router->get('/', [new EntryController(), 'index']);
+$router->get('/room/{id}', [new EntryController(), 'gameRoom']);
+$router->get('/api/get-state', [new GameApiController(), 'getBoardSate']);
 
-$router->post('/room/init', [new RoomController($session, $db), 'initGame']);
-$router->post('/api/drop-token', [new GameApiController($session, $db), 'dropToken']);
+$router->post('/room/init', [new EntryController(), 'initGame']);
+$router->post('/api/drop-token', [new GameApiController(), 'dropToken']);
 
 // Run the router using the server request data
 $router->dispatch();
