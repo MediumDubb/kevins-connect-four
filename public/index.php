@@ -23,7 +23,7 @@ $router = AppRouter::getRouter();
 
 // Define your routes here
 $router->get('/', [new EntryController(), 'index']);
-$router->get('/room/{id}', [new EntryController(), 'gameRoom']);
+$router->get('/room/{id}', [new EntryController(), 'index']);
 $router->get('/api/get-state', [new GameApiController(), 'getBoardSate']);
 
 $router->post('/room/init', [new EntryController(), 'initGame']);
