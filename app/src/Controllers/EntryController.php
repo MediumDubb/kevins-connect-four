@@ -2,7 +2,9 @@
 
 namespace MediumDubb\ConnectFour\Controllers;
 
+use Exception;
 use JetBrains\PhpStorm\NoReturn;
+use PDOException;
 
 class EntryController extends CoreController
 {
@@ -11,17 +13,14 @@ class EntryController extends CoreController
         'create'
     ];
 
-    public function index(): void
+    public function index(?string $id = null): void
     {
-        require_once (dirname(__DIR__) . "/Views/Entry.php");
-    }
-
-    public function gameRoom(string $id): void
-    {
-        $valid_player = $this->validatePlayerSession($id);
-        if ($valid_player) {
+        if (is_null($id)) {
+            require_once (dirname(__DIR__) . "/Views/Entry.php");
+        } else if ($valid_player = $this->validatePlayerSession($id)) {
             require_once (dirname(__DIR__) . "/Views/Room.php");
         } else {
+            $this->errorService->setError("You don't belong to that game");
             header("location: {$this->getBaseURI()}");
         }
     }
@@ -29,24 +28,52 @@ class EntryController extends CoreController
     #[NoReturn]
     public function initGame(): void
     {
+        $location = "/";
+
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+
             $this->clearUid(); //test
-            $action = $this->getValidatedAction();
-            $player_id = $this->getPlayerID();
-            $room_id = $this->getRoomID($player_id, $action);
-            if ($room_id) {
-                $redirect_url = $this->getRoomRedirect($room_id);
-                header("Location: $redirect_url");
-            } else {
-                header("Location: /");
+
+            $result = $this->validateFormSubmission();
+
+            if (!$result['valid']) {
+                $playerID = $this->setUser($result['userName']);
+                $location = $this->getLocation($playerID);
             }
         } else {
-            echo "Incorrect request";
+            $this->errorService->setError("Invalid request");
         }
-        exit;
+
+        header("Location: $location");
     }
 
-    private function getRoomRedirect(string $room_id): string
+    private function getLocation($playerID): string
+    {
+        $action = $this->getValidatedAction();
+
+        if ($action && $playerID && $room_id = $this->getRoomID($playerID, $action)) {
+            return $this->getRoomPath($room_id);
+        }
+
+        return '/';
+    }
+
+    private function validateFormSubmission(): array
+    {
+        if (!isset($_POST['userName']) || empty($_POST['userName'])) {
+            $this->errorService->setError("You must give yourself a name");
+            return [ 'valid' => false, 'userName' => null];
+        }
+
+        if ( $this->getUid() !== null ) {
+            $this->errorService->setError("You are already an assigned player");
+            return [ 'valid' => false, 'userName' => null];
+        }
+
+        return [ 'valid' => true, 'userName' => $_POST['userName']];
+    }
+
+    private function getRoomPath(string $room_id): string
     {
         return $this->getBaseURI() . "room/" . $room_id;
     }
@@ -56,30 +83,29 @@ class EntryController extends CoreController
         return $_SERVER['REQUEST_SCHEME'] . "://" . $_SERVER['SERVER_NAME'] . "/";
     }
 
-    private function getPlayerID(): string
+    private function setUser(string $name): ?string
     {
-        $user_id = $this->getUid();
-        $name = $_POST['playerName'];
-
-        if (is_null($user_id) && !empty($name)) {
-            $user_id = $this->getPlayerRepo()->createPlayer($name);
-            $this->setUid($user_id);
-        } else if (is_null($user_id) && empty($name)) {
-            $this->errorService->setError('Player must have a name.');
+        try {
+            $userID = $this->getPlayerRepo()->createPlayer($name);
+            $this->setUid($userID);
+            return $userID;
+        } catch (PDOException|Exception $e) {
+            $this->errorService->setError('Something went wrong: ' . $e->getMessage());
         }
 
-        return $user_id;
+        return null;
     }
 
-    private function getValidatedAction()
+    private function getValidatedAction(): ?string
     {
         $allowed_action = in_array($_POST['joinCreate'], self::$user_actions);
+
         if ($allowed_action) {
             return $_POST['joinCreate'];
         }
 
-        echo "invalid selection";
-        exit;
+        $this->errorService->setError("invalid selection");
+        return null;
     }
 
     private function getRoomID(string $playerID, string $action): string
