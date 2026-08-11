@@ -9,8 +9,28 @@
 </head>
 <body>
 
+<div class="container show" id="portal">
+    <div class="flex-center">
+        <div class="form-container">
+            <h1>Kevin's Connect4</h1>
+            <form id="joinCreateForm" action="/room/init">
+                <label for="joinCreate">*I want to: </label>
+                <select name="joinCreateSelection" id="joinCreate" required>
+                    <option value="create" selected> Create a Room</option>
+                    <option value="join"> Join a Room</option>
+                </select>
+                <label for="roomID" id="roomIdLabel" class="hide">Specify room:
+                    <input type="text" id="roomID" name="roomID" placeholder="Room ID">
+                </label>
+
+                <input type="submit" value="Go">
+            </form>
+        </div>
+    </div>
+</div>
+
 <!-- Your web page content goes here -->
-<div class="container" id="gameBoard">
+<div class="container hide" id="gameBoard">
     <div class="flex-center">
         <form>
             <div class="board">

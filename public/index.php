@@ -2,7 +2,7 @@
 
 use Dotenv\Dotenv;
 use MediumDubb\ConnectFour\Controllers\GameApiController;
-use MediumDubb\ConnectFour\Controllers\EntryController;
+use MediumDubb\ConnectFour\Controllers\PageController;
 use MediumDubb\ConnectFour\Core\AppRouter;
 
 // Find autoload.php
@@ -22,12 +22,12 @@ $dotenv->load();
 $router = AppRouter::getRouter();
 
 // Define your routes here
-$router->get('/', [new EntryController(), 'index']);
-$router->get('/room/{id}', [new EntryController(), 'index']);
-$router->get('/api/get-state', [new GameApiController(), 'getBoardSate']);
+$router->get('/', [new PageController(), 'index']);
+$router->get('/join-room', [new GameApiController(), 'join']);
+$router->get('/get-board-state', [new GameApiController(), 'getBoardSate']);
 
-$router->post('/room/init', [new EntryController(), 'initGame']);
-$router->post('/api/drop-token', [new GameApiController(), 'dropToken']);
+$router->post('/create-room', [new GameApiController(), 'create']);
+$router->post('/drop-token', [new GameApiController(), 'dropToken']);
 
 // Run the router using the server request data
 $router->dispatch();

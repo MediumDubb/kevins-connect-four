@@ -20,5 +20,12 @@ form {
     align-items: center;
 }
 
+.hide {
+    display: none;
+}
+.show {
+    display: block !important;
+}
+
 @import "includes/entry-form";
 @import "includes/game-board";

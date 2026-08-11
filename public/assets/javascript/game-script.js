@@ -1,19 +1,23 @@
 let polling, poll_interval_id, inputs, board_state, abort_controller;
 
 board_state = {
-    player_id: null,
-    winner_id: null,
-    player_class: null,
-    room_ready: false,
-    my_turn: false,
-    board_finished: false,
+    id: null,
+    current_player: null,
+    winner: null,
+    player1: {
+        id: null
+    },
+    player2: {
+        id: null
+    },
     tokens: [],
-};
+}
 
 inputs = document.querySelectorAll('#gameBoard form .board .column input[type=radio]');
 
 poll_interval_id = null;
-const base_uri = window.location.protocol + "//" + window.location.hostname + "/api";
+
+const base_url = window.location.protocol + "//" + window.location.hostname + "/";
 const room_id = getRoomID();
 
 const setInputsClickEvent = (e) => {
@@ -35,14 +39,34 @@ const setInputsClickEvent = (e) => {
 
 // =============== entry/init =================
 document.addEventListener("DOMContentLoaded", () => {
-    startPolling();
+    // check for existing room ID in url
+    // if one exists, start polling
+    if (getRoomID() !== null) {
+        startPolling();
+    } else {
+        handleUserForm();
+    }
 });
 
 // ================ helpers ===================
 
 function getRoomID()
 {
-    return window.location.pathname.split("/").pop();
+    const queryString = window.location.search;
+    return new URLSearchParams(queryString).get('roomID');
+}
+
+function setRoomIDParam(roomID)
+{
+    const urlParams = new URLSearchParams();
+    urlParams.set('roomID', roomID);
+    const newRelativePath = window.location.pathname + '?' + urlParams.toString();
+    window.history.pushState(null, '', newRelativePath);
+}
+
+function clearRoomIDParam()
+{
+    window.history.pushState(null, '', window.location.pathname);
 }
 
 function startPolling()
@@ -63,7 +87,7 @@ async function pollBoard()
     }
 
     try {
-        const response = await fetch(base_uri + '/get-state?room_id=' + room_id);
+        getState(room_id).then(r => handleResponse(r));
         const data = JSON.parse(await response.text());
         setBoardState(data.result);
         if (board_state.my_turn) {
@@ -104,7 +128,7 @@ function setBoardState(resObj) {
 
 async function setToken(column, input)
 {
-    const endpoint = base_uri + '/drop-token';
+    const endpoint = base_url + '/drop-token';
     const formBody = new URLSearchParams({
         room_id: room_id,
         board_column: column
@@ -240,4 +264,112 @@ function enableBoard()
     inputs.forEach(radio => {
         radio.disabled = false;
     });
+}
+
+function handleUserForm()
+{
+    let requiredData = {
+        roomID: null
+    };
+
+    document.addEventListener("DOMContentLoaded", () => {
+        document.getElementById("joinCreateSelection").addEventListener('change', (e) => {
+            document.getElementById("roomIdLabel").classList.toggle("show");
+        });
+    });
+
+    document.getElementById("joinCreateForm").addEventListener('submit', (e) => {
+        e.preventDefault();
+
+        const action = document.getElementById("joinCreateSelection").value;
+
+        if (action === 'join') {
+            requiredData.roomID = getSetRoomID();
+            requiredData.roomID
+                ? join(requiredData.roomID).then(r => handleResponse(r))
+                : displayErrorMsg('Room ID is non-existent');
+        } else if (action === 'create') {
+           create().then(r => handleResponse(r));
+        }
+    });
+}
+
+async function dropToken(boardID, playerID, column) {
+
+    if (boardID !== null && (typeof boardID === "string" && boardID.trim() !== "") &&
+        playerID !== null && (typeof playerID === "string" && playerID.trim() !== "") &&
+        column !== null && (typeof column === "string" && column.trim() !== "")
+    ) {
+        const path = 'drop-token';
+        const data = new URLSearchParams({ boardID: boardID, playerID: playerID, column: column });
+
+        return await fetch(base_url + path, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            body: data
+        });
+    }
+}
+
+async function create() {
+    const path = 'create-room';
+    return await fetch(base_url + path, {
+        method: 'POST'
+    });
+}
+
+async function join(boardID) {
+    if (boardID !== null && (typeof boardID === "string" && boardID.trim() !== "")) {
+        const path = 'join-room';
+        const data = new URLSearchParams({ boardID: boardID});
+        return await fetch(base_url + path + '?' + data);
+    }
+}
+
+async function getState(boardID) {
+    if (boardID !== null && (typeof boardID === "string" && boardID.trim() !== "")) {
+        const path = 'get-board-state';
+        const data = new URLSearchParams({ boardID: boardID});
+        return await fetch(base_url + path + '?' + data);
+    }
+}
+
+function getSetRoomID()
+{
+    const roomID = document.getElementById("roomID").value;
+    if (roomID !== null && roomID !== '') {
+        setRoomIDParam(roomID);
+        return roomID;
+    }
+
+    return false;
+}
+
+function handleResponse(res) {
+    res = JSON.parse(res.text());
+    console.log(res);
+
+    updateState(res);
+    // update global state for other functions to use
+}
+
+function displayErrorMsg(msg)
+{
+    document.getElementById("error_alert").innerText = msg;
+}
+
+function clearErrorMsg()
+{
+    document.getElementById("error_alert").innerText = '';
+}
+
+function updateState(res) {
+    board_state.id = res.id;
+    board_state.current_player =  res.current_playerID;
+    board_state.winner = res.winnerID;
+    board_state.player1 = res.player1;
+    board_state.player2 = res.player2;
+    board_state.tokens = res.tokens;
 }

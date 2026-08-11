@@ -4,10 +4,10 @@ namespace MediumDubb\ConnectFour\Services;
 
 class ErrorService
 {
-    const string SESSION_KEY = "Errors";
+    const string SESSION_KEY = "C4SE";
     private SessionService $session;
 
-    private static array $errors = [];
+    private static ?string $error_message = null;
     private static bool $valid = true;
     private static ErrorService $error;
 
@@ -35,8 +35,8 @@ class ErrorService
 
     public function setError(string $errorMsg): void
     {
-        self::$errors[] = $errorMsg;
-        $this->setSessionErrors();
+        self::$error_message = $errorMsg;
+        $this->setSessionError();
 
         self::$valid = false;
     }
@@ -46,35 +46,23 @@ class ErrorService
         return self::$valid;
     }
 
-    public function getErrorsList(): array
+    public function getError(): array
     {
-        return $this->getSessionErrors();
+        return $this->getSessionError();
     }
 
-    public function clearErrors(): void
+    public function clear(): void
     {
         $this->session->remove(self::SESSION_KEY);
     }
 
-    private function toJSON(): string
+    private function setSessionError(): void
     {
-        return json_encode($this::$errors);
+        $this->session->set(self::SESSION_KEY, $this::$error_message);
     }
 
-    private function fromJSON(string $serialized): array
+    private function getSessionError(): array
     {
-        return json_decode($serialized);
-    }
-
-    private function setSessionErrors(): void
-    {
-        $serialized = $this->toJSON();
-        $this->session->set(self::SESSION_KEY, $serialized);
-    }
-
-    private function getSessionErrors(): array
-    {
-        $errors = $this->session->get(self::SESSION_KEY);
-        return $this->fromJSON($errors);
+        return $this->session->get(self::SESSION_KEY);
     }
 }

@@ -19,3 +19,9 @@ DB_NAME
 ```sh 
 sass --watch theme/src/app.scss:public/assets/css/dist/app.min.css --style compressed
 ``` 
+
+Notes so far:
+refactoring everything all at once like a muppet because I have no focus.
+No more entry controller only a page controller that displays the only page this app has.
+All major logic is now in the GameApiController.
+Merging the form and game javascript logic into one file too since this is now a SPA

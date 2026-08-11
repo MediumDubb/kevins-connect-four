@@ -15,16 +15,15 @@ class PlayerRepo
 
     public function __construct(private readonly PDOConnector $db){}
 
-    public function createPlayer(string $name): string
+    public function createPlayer(): string
     {
         $stmt = $this->db->run("SELECT UUID() AS id");
         $id = $stmt->fetchColumn();
 
         $this->db->run(
-            "INSERT INTO players (id, player_name) VALUES (UUID_TO_BIN(:id, 1), :player_name)",
+            "INSERT INTO players (id) VALUES (UUID_TO_BIN(:id, 1))",
             [
-                'id' => $id,
-                'player_name' => $name
+                'id' => $id
             ]
         );
 

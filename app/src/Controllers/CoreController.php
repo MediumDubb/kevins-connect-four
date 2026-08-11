@@ -54,4 +54,22 @@ class CoreController
     {
         return new TokenRepo($this->db);
     }
+
+    protected function getBaseURI(): string
+    {
+        return $_SERVER['REQUEST_SCHEME'] . "://" . $_SERVER['SERVER_NAME'] . "/";
+    }
+
+    protected function validatePlayerSession(string $room_id): bool
+    {
+        if ($session_uid = $this->getUid()) {
+            $board_users = $this->getBoardRepo()->getRoomPlayerIDs($room_id);
+            if (is_array($board_users)) {
+                return in_array($session_uid, $board_users);
+            }
+        }
+
+        $this->errorService->setError('You are not allowed to access this page');
+        return false;
+    }
 }

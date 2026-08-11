@@ -183,8 +183,9 @@ class BoardRepo
     {
         $room_bin = $this->getBIN($room_id);
 
-        $stmt = $this->db->run(
-            "SELECT 
+        try {
+            $stmt = $this->db->run(
+                "SELECT 
                     BIN_TO_UUID(id, 1) AS id,
                     BIN_TO_UUID(player_one_id, 1) AS player_one_id,
                     BIN_TO_UUID(player_two_id, 1) AS player_two_id,
@@ -194,12 +195,16 @@ class BoardRepo
                     FROM boards
                     WHERE id = :room_bin
                     LIMIT 1",
-            [
-                'room_bin' => $room_bin,
-            ]
-        );
+                [
+                    'room_bin' => $room_bin,
+                ]
+            );
+            $result =  $stmt->fetch(PDO::FETCH_ASSOC) ?: null;
+        } catch (PDOException $e) {
+            $result = ['excpetion_error_message' => $e->getMessage()];
+        }
 
-        return $stmt->fetch(PDO::FETCH_ASSOC) ?: null;
+        return $result;
     }
 
     public function getTokensByBoardID(string $room_id): array

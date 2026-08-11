@@ -6,13 +6,43 @@ use JetBrains\PhpStorm\NoReturn;
 
 class GameApiController extends CoreController
 {
-    private int $playerID;
-    private int $roomID;
+    private ?int $playerID;
+    private ?int $roomID;
+
+    private static array $user_actions = [
+        'join',
+        'create'
+    ];
+
+    private array $response_payload = [
+        'data' => null,
+        'error_message' => null
+    ];
+
+    public function __construct(){
+        parent::__construct();
+        $this->playerID = $this->getUid();
+        $this->roomID = $this->getSafeRoomID();
+    }
+
     // todo Fix bug with win condition not triggering on first possible chance to win (probably wrong token index)
 
     #[NoReturn]
     public function dropToken(): void
     {
+        /**
+         *  1. validate request
+         *      a. check for all required data
+         *      b. check request is from the correct player
+         *      c. make sure the move is valid
+         *  2. Set the token
+         *  2. check for winner
+         *      a. if found
+         *          ia. update winner
+         *      b. if not found
+         *          ib. do not update player turns
+         *  4. send updated board state
+         */
         $room_id = $_POST['room_id'] ?? null;
 
         if (!is_null($room_id)) {
@@ -33,45 +63,70 @@ class GameApiController extends CoreController
         }
     }
 
-    // called after every action
+    // used for all responses
     #[NoReturn]
     public function getBoardSate(): void
     {
-        $result = null;
+        $roomData = $this->roomID === null
+            ? false
+            : $this->getBoardRepo()->getBoardState($this->roomID);
 
-        if ($room_id = $this->getSafeRoomID()) {
-            $room_row = $this->getBoardRepo()->getBoardState($room_id);
-            if ($this->errorService->isValid() && is_array($room_row)) {
-                $result['result'] = [
-                    'data' => $this->getBoardStateObj($room_row, $room_id),
-                    'error' => null
-                    ];
-            } else {
-                $result['result'] = [
-                    'data' => null,
-                    'error' => "Somethign went wrong"
-                ];;
-            }
-        }
+        $this->prepareStatePayload($roomData);
 
-        header('Content-Type: application/json; charset=utf-8');
-        http_response_code(200);
-        echo json_encode($result);
-        exit;
+        $this->JSONPayload($this->getResponsePayload());
     }
 
-    private function getBoardStateObj(array $room_row, string $room_id): array
+    #[NoReturn]
+    public function create(): void
     {
-        $player_id = $this->getUid();
-        $tokens = $this->getBoardRepo()->getTokensByBoardID($room_id);
-        $player_class = $this->getPlayerClass($player_id, $room_id);
-        $my_turn = ($player_id === $room_row['current_player_id']);
+        $location = "/";
+
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+
+            $this->clearUid(); //test
+
+            $playerID = $this->setUser();
+            $location = $this->getLocation($playerID);
+        } else {
+            $this->errorService->setError("Invalid request");
+        }
+
+        $this->getBoardSate();
+    }
+
+    #[NoReturn]
+    public function join(): void
+    {
+        $location = "/";
+
+        if ($_SERVER['REQUEST_METHOD'] === 'GET') {
+
+            $this->clearUid(); //test
+
+            $result = $this->validateFormSubmission();
+
+            if (!$result['valid']) {
+                $playerID = $this->setUser();
+                $location = $this->getLocation($playerID);
+            }
+        } else {
+            $this->errorService->setError("Invalid request");
+        }
+
+        $this->getBoardSate();
+    }
+
+    private function getBoardStateObj(array $room_row): array
+    {
+        $tokens = $this->getBoardRepo()->getTokensByBoardID($this->roomID);
+        $player_class = $this->getPlayerClass($this->playerID, $this->roomID);
+        $my_turn = ($this->playerID === $room_row['current_player_id']);
         $board_finished = ($room_row['board_finished'] !== 0);
         $room_ready = ($room_row['player_one_id'] && $room_row['player_two_id']);
         $winner_id = $room_row['winner_id'];
 
         return [
-            "player_id"         => $player_id,
+            "player_id"         => $this->playerID,
             "player_class"      => $player_class,
             "room_ready"        => $room_ready,
             "my_turn"           => $my_turn,
@@ -79,6 +134,39 @@ class GameApiController extends CoreController
             "winner_id"         => $winner_id,
             "tokens"            => $tokens,
         ];
+    }
+
+    private function getPreparedTokenObj(array $token_row): array
+    {
+        if ($this->validateTokenData()) {
+
+        } else {
+            $this->errorService->setError('Invalid token data.');
+        }
+    }
+
+    private function validateTokenData(): bool
+    {
+        $column = $_GET['board_column'] ?? null;
+
+        return ($column && $this->roomID && $this->playerID);
+    }
+
+    private function prepareStatePayload(array|bool $roomData): void
+    {
+        if (isset($roomData['excpetion_error_message'])) {
+            $this->errorService->setError($roomData['excpetion_error_message']);
+        }
+
+        if (!$roomData) {
+            $this->errorService->setError('Room ID not found or empty.');
+        }
+
+        if ($this->errorService->isValid()) {
+           $this->setResponsePayload($this->getBoardStateObj($roomData));
+        } else {
+            $this->setResponsePayload(null, $this->errorService->getErrorsList());
+        }
     }
 
     private function getTokenObj(): ?array
@@ -94,12 +182,21 @@ class GameApiController extends CoreController
         return null;
     }
 
+    #[NoReturn]
+    private function JSONPayload(array $payload): void
+    {
+        header('Content-Type: application/json; charset=utf-8');
+        http_response_code(200);
+        echo json_encode($payload);
+        exit;
+    }
+
     private function getSafeRoomID(): ?string
     {
         $roomId = isset($_GET['room_id']) ? trim($_GET['room_id']) : null;
 
         if (is_null($roomId) && isset($_POST['room_id'])) {
-            $roomId = $_POST['room_id'];
+            $roomId = trim($_POST['room_id']);
         }
 
         if (!is_string($roomId)) {
@@ -119,6 +216,17 @@ class GameApiController extends CoreController
         }
 
         return $roomId;
+    }
+
+    private function setResponsePayload(?array $data = null, ?array $errors = null): void
+    {
+        $this->response_payload['data'] = $data;
+        $this->response_payload['errors'] = $errors;
+    }
+
+    private function getResponsePayload(): array
+    {
+        return $this->response_payload;
     }
 
     private function getPlayerClass(string $player_id, string $room_id): string
@@ -357,5 +465,50 @@ class GameApiController extends CoreController
         }
 
         return $newArray;
+    }
+
+    private function setUser(): ?string
+    {
+        try {
+            $userID = $this->getPlayerRepo()->createPlayer();
+            $this->setUid($userID);
+            return $userID;
+        } catch (PDOException|Exception $e) {
+            $this->errorService->setError('Something went wrong: ' . $e->getMessage());
+        }
+
+        return null;
+    }
+
+    private function getValidatedAction(): ?string
+    {
+        $allowed_action = in_array($_POST['joinCreate'], self::$user_actions);
+
+        if ($allowed_action) {
+            return $_POST['joinCreate'];
+        }
+
+        $this->errorService->setError("invalid selection");
+        return null;
+    }
+
+    private function getRoomID(string $playerID, string $action): ?string
+    {
+        $room_id = empty($_POST['roomID']) ? null : $_POST['roomID'];
+
+        if (is_null($room_id) && $action === "join") {
+            $room_id = $this->getBoardRepo()->getOpenBoardID();
+            if (is_null($room_id)) {
+                $this->errorService->setError('No open rooms available');
+            }
+        }
+
+        if (is_null($room_id) && $action === "create") {
+            $room_id = $this->getBoardRepo()->createBoard($playerID);
+        } else if (!is_null($room_id)) {
+            $this->getBoardRepo()->joinBoard($room_id, $playerID);
+        }
+
+        return $room_id;
     }
 }
