@@ -20,20 +20,18 @@ $db->run("
 
 $db->run("
     CREATE TABLE IF NOT EXISTS players (
-        id BINARY(16) DEFAULT (UUID_TO_BIN(UUID(), 1)) PRIMARY KEY,
-        player_name VARCHAR(64) NOT NULL,
+        id INT AUTO_INCREMENT PRIMARY KEY NOT NULL,
         created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
     )
 ");
 
 $db->run("
     CREATE TABLE IF NOT EXISTS boards (
-        id BINARY(16) DEFAULT (UUID_TO_BIN(UUID(), 1)) PRIMARY KEY,
-        player_one_id BINARY(16) NOT NULL,
-        player_two_id BINARY(16) NULL,
-        current_player_id BINARY(16) NULL,
-        winner_id BINARY(16) NULL,
-        board_finished BOOLEAN NOT NULL DEFAULT FALSE,
+        id INT AUTO_INCREMENT PRIMARY KEY NOT NULL,
+        player_one_id INT NOT NULL,
+        player_two_id INT NULL,
+        current_player_id INT NULL,
+        winner_id INT NULL,
         created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
         
         CONSTRAINT board_player_one 
@@ -56,10 +54,14 @@ $db->run("
         board_id BINARY(16) NOT NULL,
         player_id BINARY(16) NOT NULL,
         board_column INT NOT NULL,
+        board_row INT NOT NULL,
         created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
         
         CONSTRAINT valid_column
             CHECK (board_column BETWEEN 0 AND 6),
+        
+        CONSTRAINT valid_row
+            CHECK (board_row BETWEEN 0 AND 5),
         
         CONSTRAINT token_board_fk
             FOREIGN KEY (board_id) REFERENCES boards(id),

@@ -15,18 +15,24 @@ class PlayerRepo
 
     public function __construct(private readonly PDOConnector $db){}
 
-    public function createPlayer(): string
+    public function getNewPlayerID(): string
     {
-        $stmt = $this->db->run("SELECT UUID() AS id");
-        $id = $stmt->fetchColumn();
-
         $this->db->run(
-            "INSERT INTO players (id) VALUES (UUID_TO_BIN(:id, 1))",
+            "INSERT INTO players (id) VALUES (NULL)"
+        );
+
+        return $this->db->pdo->lastInsertId();
+    }
+
+    public function getPlayerByID(string $playerID): string
+    {
+        $stmt = $this->db->run(
+            "SELECT id FROM players WHERE id = :id",
             [
-                'id' => $id
+                ':id' => $playerID
             ]
         );
 
-        return $id;
+        return $stmt->fetchColumn();
     }
 }

@@ -3,6 +3,7 @@
 namespace MediumDubb\ConnectFour\Repositories;
 
 use MediumDubb\ConnectFour\Database\PDOConnector;
+use MediumDubb\ConnectFour\Exceptions\ApiException;
 use PDO;
 use PDOException;
 
@@ -82,6 +83,25 @@ class BoardRepo
         $id = $stmt->fetchColumn();
 
         return $id ?: null;
+    }
+
+    /**
+     * @throws ApiException
+     */
+    public function getBoardByID(string $boardID): array|bool
+    {
+        try {
+            $stmt = $this->db->run(
+                "SELECT * FROM boards WHERE id = :boardID LIMIT 1",
+                [
+                    ':boardID' => $boardID
+                ]
+            );
+
+            return $stmt->fetchColumn();
+        } catch (PDOException $e) {
+            throw new ApiException('PDOServerSideError', 'A lookup error has occured', 500);
+        }
     }
 
     public function updatePlayerTurn(string $board_id, string $player_id): void
