@@ -24,9 +24,9 @@ class SessionService implements SessionInterface
 
     /**
      * @param string $key
-     * @return mixed
+     * @return null|string
      */
-    public function get(string $key): mixed
+    public function get(string $key): ?string
     {
         if ($this->has($key)) {
             return $_SESSION[$key];

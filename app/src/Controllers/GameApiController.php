@@ -12,7 +12,6 @@ class GameApiController extends CoreController
     private ?string $playerID;
     private ?string $roomID;
     private ?string $column;
-    private bool $has_error = false;
 
     private static array $user_actions = [
         'join',
@@ -34,6 +33,9 @@ class GameApiController extends CoreController
         'error_message' => null
     ];
 
+    /**
+     * @throws ApiException
+     */
     public function __construct(){
         parent::__construct();
         $this->playerID = $this->getUid();
@@ -59,13 +61,14 @@ class GameApiController extends CoreController
          *  4. send updated board state
          */
 
-        if ($_SERVER['REQUEST_METHOD'] === 'GET') {
-
-            $this->clearUid(); //test
-
-        } else {
-            $this->errorService->setError("Invalid request");
+        try {
+            $this->checkMethod('GET');
+        } catch (ApiException $e) {
+            $this->err_response_payload['status_code'] = $e->getCode();
+            $this->err_response_payload['error_message'] = $e->getMessage();
+            $responseObj = $this->err_response_payload;
         }
+
         $room_id = $_POST['room_id'] ?? null;
 
         if (!is_null($room_id)) {
@@ -102,14 +105,11 @@ class GameApiController extends CoreController
             $this->checkMethod('GET');
             $boardID = $this->getSafeBoardID();
             $rowData = $this->getBoardRepo()->getBoardByID($boardID);
-            $responseObj = $this->getResponsePayload($rowData);
+            $responseObj = $this->getStatePayload($rowData);
         } catch (ApiException $e) {
-            $obj = [
-                'status_code' => $e->getCode(),
-                'error_message' => $e->getMessage(),
-            ];
-
-            $responseObj = $this->getResponsePayload($obj);
+            $this->err_response_payload['status_code'] = $e->getCode();
+            $this->err_response_payload['error_message'] = $e->getMessage();
+            $responseObj = $this->err_response_payload;
         }
 
         $this->JSONPayload($responseObj);
@@ -120,23 +120,24 @@ class GameApiController extends CoreController
     {
         /**
          *  1. validate request
-         *  2. Create board in DB
-         *   2. Check user
-         *       a. Make user if they don't already exist
-         *  3. Retrieve board state
-         *  2. Send response
+         *  2. Check user
+         *        a. Make user if they don't already exist
+         *  3. Create board in DB
+         *  4. Retrieve board state
+         *  5. Send response
          */
-        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-
-            $this->clearUid(); //test
-
-            $playerID = $this->setUser();
-            $location = $this->getLocation($playerID);
-        } else {
-            $this->errorService->setError("Invalid request");
+        try {
+            $this->checkMethod('POST');
+            // check for current user ID or make a new one (likely make a new one)
+            $rowData = $this->getBoardRepo()->NewBoard($p1ID);
+            $responseObj = $this->getStatePayload($rowData);
+        } catch (ApiException $e) {
+            $this->err_response_payload['status_code'] = $e->getCode();
+            $this->err_response_payload['error_message'] = $e->getMessage();
+            $responseObj = $this->err_response_payload;
         }
 
-        $this->getBoardSate();
+        $this->JSONPayload($responseObj);
     }
 
     #[NoReturn]
@@ -147,27 +148,22 @@ class GameApiController extends CoreController
          *      a. extract boardID
          *      b. check that boardID is valid
          *  2. Check user
-         *      a. Make user if they don't already exist
+         *      a. if the board does not have an open spot, or the UID does not match any current players then reject their join with an error
          *  2. Retrieve board state
          *  3. Send response
          */
-        $location = "/";
-
-        if ($_SERVER['REQUEST_METHOD'] === 'GET') {
-
-            $this->clearUid(); //test
-
-            $result = $this->validateFormSubmission();
-
-            if (!$result['valid']) {
-                $playerID = $this->setUser();
-                $location = $this->getLocation($playerID);
-            }
-        } else {
-            $this->errorService->setError("Invalid request");
+        try {
+            $this->checkMethod('POST');
+            $boardID = $this->getSafeBoardID();
+            $rowData = $this->getBoardRepo()->getBoardByID($boardID);
+            $responseObj = $this->getStatePayload($rowData);
+        } catch (ApiException $e) {
+            $this->err_response_payload['status_code'] = $e->getCode();
+            $this->err_response_payload['error_message'] = $e->getMessage();
+            $responseObj = $this->err_response_payload;
         }
 
-        $this->getBoardSate();
+        $this->JSONPayload($responseObj);
     }
 
     private function getBoardStateObj(array $room_row): array
@@ -257,39 +253,49 @@ class GameApiController extends CoreController
         exit;
     }
 
+    /**
+     * @throws ApiException
+     */
     private function getSafeBoardID(): ?string
     {
         $boardID = isset($_GET['boardID']) ? trim($_GET['boardID']) : null;
 
         if ($boardID === '' || $boardID === null ) {
-            $this->errorService->setError('Missing board ID.');
-            return null;
+            throw new ApiException("InvalidRequest", "Missing board ID", 400);
         }
 
         if (!preg_match('/\d+/', $boardID) || $boardID === '0') {
-            $this->errorService->setError('Invalid board ID.');
-            return null;
+            throw new ApiException("InvalidRequest", "Invalid board ID", 400);
         }
 
         return $boardID;
     }
 
-    private function getResponsePayload(array $data): array
+    /**
+     * @throws ApiException
+     */
+    private function getStatePayload(array $data): array
     {
-        if ($this->has_error) {
-            $this->err_response_payload['status_code'] = $data['status_code'];
-            $this->err_response_payload['error_message'] = $data['error_message'];
-            return $this->err_response_payload;
-        }
 
-        $this->response_payload['status_code'] = 200;
-        $this->response_payload['id'] = $data['id'];
-        $this->response_payload['current_player'] = $data['current_player'];
-        $this->response_payload['winner'] = $data['winner'];
-        $this->response_payload['player1'] = $data['boardID'];
-        $this->response_payload['player2'] = $data['boardID'];
-        $this->response_payload['tokens'] = $data['boardID'];
-        return $this->response_payload;
+        if (
+            (!empty($data['id'])) &&
+            (!empty($data['current_player'])) &&
+            (!empty($data['winner'])) &&
+            (!empty($data['player1']) && is_array($data['player1'])) &&
+            (!empty($data['player2']) && is_array($data['player2'])) &&
+            (!empty($data['tokens']) && is_array($data['tokens']))
+        ) {
+            $this->response_payload['status_code'] = 200;
+            $this->response_payload['id'] = $data['id'];
+            $this->response_payload['current_player'] = $data['current_player'];
+            $this->response_payload['winner'] = $data['winner'];
+            $this->response_payload['player1'] = $data['player1'];
+            $this->response_payload['player2'] = $data['player2'];
+            $this->response_payload['tokens'] = $data['tokens'];
+            return $this->response_payload;
+        } else {
+            throw new ApiException("InvalidRequest", "Incomplete payload", 400);
+        }
     }
 
     private function getPlayerClass(string $player_id, string $room_id): string
