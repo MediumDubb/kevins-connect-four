@@ -2,15 +2,13 @@
 
 namespace MediumDubb\ConnectFour\Controllers;
 
-use Exception;
 use JetBrains\PhpStorm\NoReturn;
 use MediumDubb\ConnectFour\Exceptions\ApiException;
-use PDOException;
 
 class GameApiController extends CoreController
 {
     private ?string $playerID;
-    private ?string $roomID;
+    private ?string $boardID;
     private ?string $column;
 
     private static array $user_actions = [
@@ -39,7 +37,7 @@ class GameApiController extends CoreController
     public function __construct(){
         parent::__construct();
         $this->playerID = $this->getUid();
-        $this->roomID = $this->getSafeBoardID();
+        $this->boardID = $this->getSafeBoardID();
     }
 
     // todo Fix bug with win condition not triggering on first possible chance to win (probably wrong token index)
@@ -60,33 +58,26 @@ class GameApiController extends CoreController
          *          ib. do not update player turns
          *  4. send updated board state
          */
+        $responseObj = [];
 
         try {
             $this->checkMethod('GET');
+            $tokenObj = $this->getTokenObj();
+            if ($winnerId = $this->getWinnerId($this->getBoardRepo()->getTokensByBoardID($this->boardID), $tokenObj)) {
+                $this->getBoardRepo()->updateWinner($winnerId, $this->boardID);
+            } else {
+                $next_player_id = $this->getBoardRepo()->getAlternatePlayerID($this->boardID);
+                $this->getBoardRepo()->updatePlayerTurn($this->boardID, $next_player_id);
+            }
+            $this->getTokenRepo()->setToken($tokenObj);
+            $this->getBoardSate();
         } catch (ApiException $e) {
             $this->err_response_payload['status_code'] = $e->getCode();
             $this->err_response_payload['error_message'] = $e->getMessage();
             $responseObj = $this->err_response_payload;
         }
 
-        $room_id = $_POST['room_id'] ?? null;
-
-        if (!is_null($room_id)) {
-            $tokenObj = $this->getTokenObj();
-            if (!is_null($tokenObj)) {
-                // check for a winner. If one exists, then we do not want to update the players
-                if ($winnerId = $this->getWinnerId($this->getBoardRepo()->getTokensByBoardID($room_id), $tokenObj)) {
-                    $this->getBoardRepo()->updateWinner($winnerId, $room_id);
-                } else {
-                    $next_player_id = $this->getBoardRepo()->getAlternatePlayerID($room_id);
-                    $this->getBoardRepo()->updatePlayerTurn($room_id, $next_player_id);
-                }
-
-                if ($this->getTokenRepo()->setToken($tokenObj)) {
-                    $this->getBoardSate();
-                }
-            }
-        }
+        $this->JSONPayload($responseObj);
     }
 
     // used for all responses
@@ -97,14 +88,15 @@ class GameApiController extends CoreController
          *  1. validate request
          *      a. extract boardID -> getSafeBoardID()
          *      b. check that boardID is valid -> getBoardByID()
+         *          b1. board exists
+         *          b2. board is not complete
          *  2. Retrieve board state -> Get result from successful check
          *  3. Send response
          */
 
         try {
             $this->checkMethod('GET');
-            $boardID = $this->getSafeBoardID();
-            $rowData = $this->getBoardRepo()->getBoardByID($boardID);
+            $rowData = $this->getBoardRepo()->getBoardByID($this->boardID);
             $responseObj = $this->getStatePayload($rowData);
         } catch (ApiException $e) {
             $this->err_response_payload['status_code'] = $e->getCode();
@@ -121,15 +113,14 @@ class GameApiController extends CoreController
         /**
          *  1. validate request
          *  2. Check user
-         *        a. Make user if they don't already exist
+         *        a. Make user if they don't already exist // handled in controller
          *  3. Create board in DB
          *  4. Retrieve board state
          *  5. Send response
          */
         try {
             $this->checkMethod('POST');
-            // check for current user ID or make a new one (likely make a new one)
-            $rowData = $this->getBoardRepo()->NewBoard($p1ID);
+            $rowData = $this->getBoardRepo()->getNewBoardBoardObj($this->playerID);
             $responseObj = $this->getStatePayload($rowData);
         } catch (ApiException $e) {
             $this->err_response_payload['status_code'] = $e->getCode();
@@ -154,8 +145,7 @@ class GameApiController extends CoreController
          */
         try {
             $this->checkMethod('POST');
-            $boardID = $this->getSafeBoardID();
-            $rowData = $this->getBoardRepo()->getBoardByID($boardID);
+            $rowData = $this->getBoardRepo()->getBoardByID($this->boardID);
             $responseObj = $this->getStatePayload($rowData);
         } catch (ApiException $e) {
             $this->err_response_payload['status_code'] = $e->getCode();
@@ -166,82 +156,30 @@ class GameApiController extends CoreController
         $this->JSONPayload($responseObj);
     }
 
-    private function getBoardStateObj(array $room_row): array
+    /**
+     * @throws ApiException
+     */
+    private function checkMethod(string $method): void
     {
-        $tokens = $this->getBoardRepo()->getTokensByBoardID($this->roomID);
-        $player_class = $this->getPlayerClass($this->playerID, $this->roomID);
-        $my_turn = ($this->playerID === $room_row['current_player_id']);
-        $board_finished = ($room_row['board_finished'] !== 0);
-        $room_ready = ($room_row['player_one_id'] && $room_row['player_two_id']);
-        $winner_id = $room_row['winner_id'];
-
-        return [
-            "player_id"         => $this->playerID,
-            "player_class"      => $player_class,
-            "room_ready"        => $room_ready,
-            "my_turn"           => $my_turn,
-            "board_finished"    => $board_finished,
-            "winner_id"         => $winner_id,
-            "tokens"            => $tokens,
-        ];
+        if ($_SERVER['REQUEST_METHOD'] !== strtoupper($method)) {
+            throw new ApiException("InvalidRequest", "Invalid request method", 405);
+        }
     }
 
     /**
      * @throws ApiException
      */
-    private function checkMethod(string $method): true
+    private function getTokenObj(): array
     {
-        if ($_SERVER['REQUEST_METHOD'] !== strtoupper($method)) {
-            throw new ApiException("InvalidRequest", "Invalid request method", 405);
-        }
-
-        return true;
-    }
-
-    private function getPreparedTokenObj(array $token_row): array
-    {
-        if ($this->validateTokenData()) {
-
-        } else {
-            $this->errorService->setError('Invalid token data.');
-        }
-    }
-
-    private function validateTokenData(): bool
-    {
-        $column = $_GET['board_column'] ?? null;
-
-        return ($column && $this->roomID && $this->playerID);
-    }
-
-    private function prepareStatePayload(array|bool $roomData): void
-    {
-        if (isset($roomData['excpetion_error_message'])) {
-            $this->errorService->setError($roomData['excpetion_error_message']);
-        }
-
-        if (!$roomData) {
-            $this->errorService->setError('Room ID not found or empty.');
-        }
-
-        if ($this->errorService->isValid()) {
-           $this->setResponsePayload($this->getBoardStateObj($roomData));
-        } else {
-            $this->setResponsePayload(null, $this->errorService->getErrorsList());
-        }
-    }
-
-    private function getTokenObj(): ?array
-    {
-        if (isset($_POST)) {
+        if (!empty($this->boardID) &&!empty($_GET['column'])) {
             return [
-                "room_id"       => $_POST['room_id'],
-                "player_id"     => $this->getUid() ?? $_POST['player_id'],
-                "board_column"  => $_POST['board_column'],
+                "room_id"       => $this->boardID,
+                "player_id"     => $this->playerID,
+                "board_column"  => $_GET['column'],
             ];
+        } else {
+            throw new ApiException("InvalidRequest", "Incomplete token request", 400);
         }
-
-        return null;
     }
 
     #[NoReturn]
@@ -296,11 +234,6 @@ class GameApiController extends CoreController
         } else {
             throw new ApiException("InvalidRequest", "Incomplete payload", 400);
         }
-    }
-
-    private function getPlayerClass(string $player_id, string $room_id): string
-    {
-        return ($player_id === $this->getBoardRepo()->getPlayerOne($room_id)) ? 'p1' : 'p2';
     }
 
     /**
@@ -534,18 +467,5 @@ class GameApiController extends CoreController
         }
 
         return $newArray;
-    }
-
-    private function createNewUser(): ?string
-    {
-        try {
-            $userID = $this->getPlayerRepo()->getNewPlayerID();
-            $this->setUid($userID);
-            return $userID;
-        } catch (PDOException|Exception $e) {
-            $this->errorService->setError('Something went wrong: ' . $e->getMessage());
-        }
-
-        return null;
     }
 }

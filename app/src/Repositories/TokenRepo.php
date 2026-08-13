@@ -4,6 +4,7 @@ namespace MediumDubb\ConnectFour\Repositories;
 
 use MediumDubb\ConnectFour\Domains\Token;
 use MediumDubb\ConnectFour\Database\PDOConnector;
+use MediumDubb\ConnectFour\Exceptions\ApiException;
 use PDO;
 use PDOException;
 
@@ -21,7 +22,10 @@ class TokenRepo
     public function __construct(private readonly PDOConnector $db)
     {}
 
-    public function setToken(array $data): bool
+    /**
+     * @throws ApiException
+     */
+    public function setToken(array $data): void
     {
         try {
             $this->db->run(
@@ -44,10 +48,8 @@ class TokenRepo
                 ]
             );
         } catch (PDOException $e) {
-            return false;
+            throw new ApiException('Failed to set token', 500);
         }
-
-        return true;
     }
 
     public function getByBoardID(int $board_id): ?array

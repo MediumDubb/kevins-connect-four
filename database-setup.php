@@ -28,31 +28,31 @@ $db->run("
 $db->run("
     CREATE TABLE IF NOT EXISTS boards (
         id INT AUTO_INCREMENT PRIMARY KEY NOT NULL,
-        player_one_id INT NOT NULL,
-        player_two_id INT NULL,
-        current_player_id INT NULL,
-        winner_id INT NULL,
+        player1 INT NOT NULL,
+        player2 INT NULL,
+        current_player INT NULL,
+        winner INT NULL,
         created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
         
         CONSTRAINT board_player_one 
-            FOREIGN KEY (player_one_id) REFERENCES players(id),
+            FOREIGN KEY (player1) REFERENCES players(id),
         
         CONSTRAINT board_player_two 
-            FOREIGN KEY (player_two_id) REFERENCES players(id),
+            FOREIGN KEY (player2) REFERENCES players(id),
         
         CONSTRAINT board_curr_player 
-            FOREIGN KEY (current_player_id) REFERENCES players(id),
+            FOREIGN KEY (current_player) REFERENCES players(id),
         
         CONSTRAINT board_winner 
-            FOREIGN KEY (winner_id) REFERENCES players(id)
+            FOREIGN KEY (winner) REFERENCES players(id)
     )
 ");
 
 $db->run("
     CREATE TABLE IF NOT EXISTS tokens (
         id INT PRIMARY KEY AUTO_INCREMENT NOT NULL,
-        board_id BINARY(16) NOT NULL,
-        player_id BINARY(16) NOT NULL,
+        board_id INT NOT NULL,
+        player_id INT NOT NULL,
         board_column INT NOT NULL,
         board_row INT NOT NULL,
         created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -63,10 +63,10 @@ $db->run("
         CONSTRAINT valid_row
             CHECK (board_row BETWEEN 0 AND 5),
         
-        CONSTRAINT token_board_fk
+        CONSTRAINT token_board
             FOREIGN KEY (board_id) REFERENCES boards(id),
 
-        CONSTRAINT token_player_fk
+        CONSTRAINT token_player
             FOREIGN KEY (player_id) REFERENCES players(id)
     )
 ");

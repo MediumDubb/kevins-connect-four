@@ -22,20 +22,25 @@ class BoardRepo
 
     public function __construct(private readonly PDOConnector $db){}
 
-    public function createBoard(string $player_id): string
+    public function getNewBoardBoardObj(string $player_id): array
     {
-        $stmt = $this->db->run("SELECT UUID() AS id");
-        $id = $stmt->fetchColumn();
-
         $this->db->run(
-            "INSERT INTO boards (id, player_one_id) VALUES (UUID_TO_BIN(:id, 1), UUID_TO_BIN(:player_one_id, 1))",
+            "INSERT INTO boards (player_one_id) VALUES (:player_one_id)",
             [
-                'id' => $id,
                 'player_one_id' => $player_id,
             ]
         );
 
-        return $id;
+        $boardID = $this->db->pdo->lastInsertId();
+
+        $stmt = $this->db->run(
+            "SELECT * FROM boards WHERE id = :id",
+            [
+                'id' => $boardID,
+            ]
+        );
+
+        return $stmt->fetchColumn();
     }
 
     public function joinBoard(string $board_id, string $player_two_id): void
