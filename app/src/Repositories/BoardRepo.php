@@ -22,25 +22,33 @@ class BoardRepo
 
     public function __construct(private readonly PDOConnector $db){}
 
+    /**
+     * @throws ApiException
+     */
     public function getNewBoardBoardObj(string $player_id): array
     {
-        $this->db->run(
-            "INSERT INTO boards (player_one_id) VALUES (:player_one_id)",
-            [
-                'player_one_id' => $player_id,
-            ]
-        );
+        try {
+            $this->db->run(
+                "INSERT INTO boards (player_one_id) VALUES (:player_one_id)",
+                [
+                    'player_one_id' => $player_id,
+                ]
+            );
 
-        $boardID = $this->db->pdo->lastInsertId();
+            $boardID = $this->db->pdo->lastInsertId();
 
-        $stmt = $this->db->run(
-            "SELECT * FROM boards WHERE id = :id",
-            [
-                'id' => $boardID,
-            ]
-        );
+            $stmt = $this->db->run(
+                "SELECT * FROM boards WHERE id = :id",
+                [
+                    'id' => $boardID,
+                ]
+            );
 
-        return $stmt->fetchColumn();
+            return $stmt->fetchColumn();
+        } catch (PDOException) {
+            throw new ApiException('PDOServerSideError', 'The server has encountered an error', 500);
+        }
+
     }
 
     public function joinBoard(string $board_id, string $player_two_id): void

@@ -8,8 +8,6 @@ use MediumDubb\ConnectFour\Exceptions\ApiException;
 class GameApiController extends CoreController
 {
     private ?string $playerID;
-    private ?string $boardID;
-    private ?string $column;
 
     private static array $user_actions = [
         'join',
@@ -36,8 +34,8 @@ class GameApiController extends CoreController
      */
     public function __construct(){
         parent::__construct();
+
         $this->playerID = $this->getUid();
-        $this->boardID = $this->getSafeBoardID();
     }
 
     // todo Fix bug with win condition not triggering on first possible chance to win (probably wrong token index)
@@ -62,12 +60,13 @@ class GameApiController extends CoreController
 
         try {
             $this->checkMethod('GET');
+            $boardID = $this->getSafeBoardID();
             $tokenObj = $this->getTokenObj();
-            if ($winnerId = $this->getWinnerId($this->getBoardRepo()->getTokensByBoardID($this->boardID), $tokenObj)) {
-                $this->getBoardRepo()->updateWinner($winnerId, $this->boardID);
+            if ($winnerId = $this->getWinnerId($this->getBoardRepo()->getTokensByBoardID($boardID), $tokenObj)) {
+                $this->getBoardRepo()->updateWinner($winnerId, $boardID);
             } else {
-                $next_player_id = $this->getBoardRepo()->getAlternatePlayerID($this->boardID);
-                $this->getBoardRepo()->updatePlayerTurn($this->boardID, $next_player_id);
+                $next_player_id = $this->getBoardRepo()->getAlternatePlayerID($boardID);
+                $this->getBoardRepo()->updatePlayerTurn($boardID, $next_player_id);
             }
             $this->getTokenRepo()->setToken($tokenObj);
             $this->getBoardSate();
@@ -96,7 +95,8 @@ class GameApiController extends CoreController
 
         try {
             $this->checkMethod('GET');
-            $rowData = $this->getBoardRepo()->getBoardByID($this->boardID);
+            $boardID = $this->getSafeBoardID();
+            $rowData = $this->getBoardRepo()->getBoardByID($boardID);
             $responseObj = $this->getStatePayload($rowData);
         } catch (ApiException $e) {
             $this->err_response_payload['status_code'] = $e->getCode();
@@ -144,8 +144,10 @@ class GameApiController extends CoreController
          *  3. Send response
          */
         try {
-            $this->checkMethod('POST');
-            $rowData = $this->getBoardRepo()->getBoardByID($this->boardID);
+            $this->checkMethod('GET');
+            $boardID = $this->getSafeBoardID();
+            $rowData = $this->getBoardRepo()->getBoardByID($boardID);
+            $this->isBoardCompleted($rowData);
             $responseObj = $this->getStatePayload($rowData);
         } catch (ApiException $e) {
             $this->err_response_payload['status_code'] = $e->getCode();
@@ -171,9 +173,11 @@ class GameApiController extends CoreController
      */
     private function getTokenObj(): array
     {
-        if (!empty($this->boardID) &&!empty($_GET['column'])) {
+        $boardID = $this->getSafeBoardID();
+
+        if (!empty($boardID) &&!empty($_GET['column'])) {
             return [
-                "room_id"       => $this->boardID,
+                "room_id"       => $boardID,
                 "player_id"     => $this->playerID,
                 "board_column"  => $_GET['column'],
             ];
@@ -189,6 +193,18 @@ class GameApiController extends CoreController
         http_response_code($payload['status_code']);
         echo json_encode($payload);
         exit;
+    }
+
+    /**
+     * @throws ApiException
+     */
+    private function isBoardCompleted(?array $rowData): void
+    {
+        if (is_array($rowData) && isset($rowData['winner'])) {
+            throw new ApiException("InvalidRequest", "The requested board is a completed game", 400);
+        } else if (!is_array($rowData)) {
+            throw new ApiException("InvalidRequest", "Completion check failed.", 400);
+        }
     }
 
     /**
