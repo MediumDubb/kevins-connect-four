@@ -6,6 +6,7 @@ use MediumDubb\ConnectFour\Database\PDOConnector;
 
 class PlayerRepo
 {
+    private PDOConnector $db;
     private const string TABLE = 'players';
 
     private const array DB_COLUMNS = [
@@ -13,7 +14,9 @@ class PlayerRepo
         'player_name',
     ];
 
-    public function __construct(private readonly PDOConnector $db){}
+    public function __construct() {
+        $this->db = new PDOConnector();
+    }
 
     public function getNewPlayerID(): string
     {

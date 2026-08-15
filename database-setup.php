@@ -21,7 +21,6 @@ $db->run("
 $db->run("
     CREATE TABLE IF NOT EXISTS players (
         id INT AUTO_INCREMENT PRIMARY KEY NOT NULL,
-        created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
     )
 ");
 
@@ -32,7 +31,6 @@ $db->run("
         player2 INT NULL,
         current_player INT NULL,
         winner INT NULL,
-        created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
         
         CONSTRAINT board_player_one 
             FOREIGN KEY (player1) REFERENCES players(id),
@@ -55,7 +53,6 @@ $db->run("
         player_id INT NOT NULL,
         board_column INT NOT NULL,
         board_row INT NOT NULL,
-        created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
         
         CONSTRAINT valid_column
             CHECK (board_column BETWEEN 0 AND 6),

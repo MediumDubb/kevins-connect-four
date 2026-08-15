@@ -228,27 +228,27 @@ class GameApiController extends CoreController
     /**
      * @throws ApiException
      */
-    private function getStatePayload(array $data): array
+    private function getStatePayload(array $boardData): array
     {
-
+        /**
+         * "Current player" and "tokens" are not retrieved from the board row data in the DB
+         * These two values are added as a seperate request from the DB
+         */
         if (
-            (!empty($data['id'])) &&
-            (!empty($data['current_player'])) &&
-            (!empty($data['winner'])) &&
-            (!empty($data['player1']) && is_array($data['player1'])) &&
-            (!empty($data['player2']) && is_array($data['player2'])) &&
-            (!empty($data['tokens']) && is_array($data['tokens']))
+            isset($boardData["id"]) &&
+            isset($boardData["player1"]) &&
+            isset($boardData["created_at"])
         ) {
             $this->response_payload['status_code'] = 200;
-            $this->response_payload['id'] = $data['id'];
-            $this->response_payload['current_player'] = $data['current_player'];
-            $this->response_payload['winner'] = $data['winner'];
-            $this->response_payload['player1'] = $data['player1'];
-            $this->response_payload['player2'] = $data['player2'];
-            $this->response_payload['tokens'] = $data['tokens'];
+            $this->response_payload['id'] = $boardData['id'];
+            $this->response_payload['current_player'] = $boardData['current_player'];
+            $this->response_payload['player1'] = $boardData['player1'];
+            $this->response_payload['player2'] = $boardData['player2'];
+            $this->response_payload['winner'] = $boardData['winner'];
+            $this->response_payload['tokens'] = $boardData['tokens'];
             return $this->response_payload;
         } else {
-            throw new ApiException("InvalidRequest", "Incomplete payload", 400);
+            throw new ApiException("InvalidRequest", "Invalid payload", 400);
         }
     }
 
