@@ -88,8 +88,9 @@ class GameApiController extends CoreController
         try {
             $this->checkMethod('GET');
             $boardID = $this->getSafeBoardID();
-            $boardObj = $this->getBoardRepo()->getBoardByID($boardID);
-            $responseObj = $boardObj->getBoardState();
+            $board = $this->getBoardRepo()->getBoardByID($boardID);
+            $boardResponse = BoardResponse::fromDomain($board);
+            $responseObj = $boardResponse->toArray();
         } catch (ApiException $e) {
             $this->err_response_payload['status_code'] = $e->getCode();
             $this->err_response_payload['error_message'] = $e->getMessage();
