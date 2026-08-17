@@ -58,7 +58,7 @@ class TokenRepo
     /**
      * @throws ApiException
      */
-    public function getTokensByBoardID(int $boardID): ?array
+    public function getTokensByBoardID(int $boardID): array
     {
         $stmt = $this->db->run(
             "SELECT 
@@ -71,8 +71,13 @@ class TokenRepo
                 'boardID' => $boardID,
             ]
         );
+        $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-        return $this->mapToModel($stmt->fetchAll(PDO::FETCH_ASSOC));
+        if (!empty($rows)) {
+            return array_map(fn($row) => Token::fromDB($row), $rows);
+        }
+
+        return $rows;
     }
 
     /**

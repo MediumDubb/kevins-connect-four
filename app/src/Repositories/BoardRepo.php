@@ -30,6 +30,25 @@ class BoardRepo
     /**
      * @throws ApiException
      */
+    public function getBoardByID(string $boardID): Board
+    {
+        try {
+            $stmt = $this->db->run(
+                "SELECT * FROM " . self::TABLE . " WHERE id = :boardID LIMIT 1",
+                [
+                    ':boardID' => $boardID
+                ]
+            );
+            $row = $stmt->fetch(PDO::FETCH_ASSOC);
+            return Board::fromDB($row);
+        } catch (PDOException $e) {
+            throw new ApiException('PDOServerSideError', 'Internal server error: lookup failed', 500);
+        }
+    }
+
+    /**
+     * @throws ApiException
+     */
     public function create(string $player_id): Board
     {
         if (filter_var($player_id, FILTER_VALIDATE_INT)) {
@@ -40,7 +59,7 @@ class BoardRepo
 
         try {
             $this->db->run(
-                "INSERT INTO boards (player1) VALUES (:player_one_id)",
+                "INSERT INTO " . self::TABLE . " (player1) VALUES (:player_one_id)",
                 [
                     'player_one_id' => $player_id,
                 ]
@@ -48,7 +67,7 @@ class BoardRepo
 
             $boardID = $this->db->pdo->lastInsertId();
         } catch (PDOException|Exception $e) {
-            throw new ApiException('PDOServerSideError', 'The server has encountered an error', 500);
+            throw new ApiException('PDOServerSideError', 'Internal server error: unable to create', 500);
         }
 
         return $this->getBoardByID($boardID);
@@ -61,7 +80,7 @@ class BoardRepo
     {
         try {
             $this->db->run(
-                "UPDATE boards
+                "UPDATE " . self::TABLE . "
                     SET (player_two_id, current_player) = (:player_two_id, :current_player_id)
                     WHERE id = :id",
                 [
@@ -70,7 +89,7 @@ class BoardRepo
                 ]
             );
         } catch (PDOException $e) {
-            throw new ApiException('PDOServerSideError', 'The server has encountered an error for join', 500);
+            throw new ApiException('PDOServerSideError', 'Internal server error: unable to join.', 500);
         }
 
         return $this->getBoardByID($board_id);
@@ -83,34 +102,15 @@ class BoardRepo
     {
         try {
             $stmt = $this->db->run(
-                "SELECT id FROM boards WHERE player_two_id IS NULL LIMIT 1"
+                "SELECT id FROM " . self::TABLE . " WHERE player_two_id IS NULL LIMIT 1"
             );
 
             $id = $stmt->fetchColumn();
         } catch (PDOException $e) {
-            throw new ApiException('PDOServerSideError', 'A lookup error has occured', 500);
+            throw new ApiException('PDOServerSideError', 'Internal server error: failed on open board lookup', 500);
         }
 
         return $id;
-    }
-
-    /**
-     * @throws ApiException
-     */
-    public function getBoardByID(string $boardID): Board
-    {
-        try {
-            $stmt = $this->db->run(
-                "SELECT * FROM boards WHERE id = :boardID LIMIT 1",
-                [
-                    ':boardID' => $boardID
-                ]
-            );
-
-            return $this->mapToModel($stmt->fetch(PDO::FETCH_ASSOC));
-        } catch (PDOException $e) {
-            throw new ApiException('PDOServerSideError', 'Server error, lookup failed', 500);
-        }
     }
 
     /**
@@ -120,7 +120,7 @@ class BoardRepo
     {
         try {
             $this->db->run(
-                "UPDATE boards
+                "UPDATE " . self::TABLE . "
                     SET winner_id = :winner_id,
                         board_finished = 1
                     WHERE id = :id
@@ -131,7 +131,7 @@ class BoardRepo
                 ]
             );
         } catch (PDOException $e) {
-            throw new ApiException('PDOServerSideError', 'Winner assignment failed', 500);
+            throw new ApiException('PDOServerSideError', 'Internal server error: failed on winner assignment', 500);
         }
 
     }
@@ -148,7 +148,7 @@ class BoardRepo
                         WHEN current_player = player1 THEN player2
                         ELSE player1
                     END AS opposing_player_id
-                FROM boards
+                FROM " . self::TABLE . "
                 WHERE id = :boardID",
                 [
                     'boardID' => $boardID
@@ -157,7 +157,7 @@ class BoardRepo
 
             $nextPlayerID = $stmt->fetchColumn() ?? null;
         } catch (PDOException $e) {
-            throw new ApiException('PDOServerSideError', 'Turn assignment failed', 500);
+            throw new ApiException('PDOServerSideError', 'Internal server error: failed on turn assignment', 500);
         }
 
         $this->updatePlayerTurn( $boardID,  $nextPlayerID);
@@ -170,7 +170,7 @@ class BoardRepo
     {
         try {
             $this->db->run(
-                "UPDATE boards
+                "UPDATE " . self::TABLE . "
                     SET current_player_id = :current_player_id
                     WHERE id = :id
                     AND board_finished = 0",
@@ -180,7 +180,7 @@ class BoardRepo
                 ]
             );
         } catch (PDOException $e) {
-            throw new ApiException('PDOServerSideError', 'An server error has occured during turn assignment', 500);
+            throw new ApiException('PDOServerSideError', 'Internal server error: failed turn update', 500);
         }
 
         return $this->getBoardByID($boardID);
@@ -188,12 +188,11 @@ class BoardRepo
 
     public function getRoomPlayerIDs(string $roomID): ?array
     {
-
         $stmt = $this->db->run(
             "SELECT 
                     player1 AS player_one_id,
                     player2 AS player_two_id
-                    FROM boards
+                    FROM " . self::TABLE . "
                     WHERE id = :roomID
                     AND board_finished = 0
                     LIMIT 1",
@@ -207,11 +206,10 @@ class BoardRepo
 
     public function getPlayerOne(string $roomID): ?string
     {
-
         $stmt = $this->db->run(
             "SELECT 
                     player1 AS player_one_id
-                    FROM boards
+                    FROM " . self::TABLE . "
                     WHERE id = :roomID
                     LIMIT 1",
             [
@@ -220,21 +218,5 @@ class BoardRepo
         );
 
         return $stmt->fetchColumn() ?: null;
-    }
-
-    /**
-     * @param $id
-     * @param $player1
-     * @param $player2
-     * @param $current_player
-     * @param $winner
-     * @return Board
-     *
-     *  ToDo - Need to figure out how validate and map all the data to the Board model
-     */
-
-    private function mapToBoard($id, $player1, $player2, $current_player, $winner): Board
-    {
-        return new Board($id, $player1, $player2, $current_player, $winner);
     }
 }

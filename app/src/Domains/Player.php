@@ -2,13 +2,11 @@
 
 namespace MediumDubb\ConnectFour\Domains;
 
-use MediumDubb\ConnectFour\Exceptions\ApiException;
-
 final readonly class Player
 {
-    public function __construct(private int $id){}
+    public function __construct(private ?int $id = null){}
 
-    public function fromDB(array $row): self {
+    public static function fromDB(array $row): self {
         return new self(
             id: $row['id'],
         );

@@ -42,18 +42,7 @@ class PlayerRepo
             ]
         );
 
-        return $this->mapToModel( $stmt->fetch(PDO::FETCH_ASSOC));
-    }
-
-    /**
-     * @param $id
-     * @return Player
-     *
-     *  ToDo - Need to figure out how validate and map all the data to the Player model
-     */
-
-    private function mapToPlayer($id): Player
-    {
-        return new Player($id);
+        $row = $stmt->fetch(PDO::FETCH_ASSOC);
+        return Player::fromDB($row);
     }
 }

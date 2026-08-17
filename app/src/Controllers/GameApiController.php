@@ -4,6 +4,7 @@ namespace MediumDubb\ConnectFour\Controllers;
 
 use JetBrains\PhpStorm\NoReturn;
 use MediumDubb\ConnectFour\Domains\Board;
+use MediumDubb\ConnectFour\DTO\BoardResponse;
 use MediumDubb\ConnectFour\Exceptions\ApiException;
 
 class GameApiController extends CoreController
@@ -103,8 +104,7 @@ class GameApiController extends CoreController
     {
         /**
          *  1. validate request
-         *  2. Check user
-         *        a. Make user if they don't already exist // handled in controller
+         *  2. get user ID
          *  3. Create board in DB
          *  4. Retrieve board state
          *  5. Send response
@@ -113,7 +113,8 @@ class GameApiController extends CoreController
             $this->checkMethod('POST');
             $playerID = $this->getUid();
             $board = $this->getBoardRepo()->create($playerID);
-            $responseObj = $board->getBoardState();
+            $boardResponse = BoardResponse::fromDomain($board);
+            $responseObj = $boardResponse->toArray();
         } catch (ApiException $e) {
             $this->err_response_payload['status_code'] = $e->getCode();
             $this->err_response_payload['error_message'] = $e->getMessage();

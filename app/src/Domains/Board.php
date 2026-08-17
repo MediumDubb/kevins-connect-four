@@ -2,13 +2,13 @@
 
 namespace MediumDubb\ConnectFour\Domains;
 
+use MediumDubb\ConnectFour\DTO\BoardResponse;
 use MediumDubb\ConnectFour\Exceptions\ApiException;
 use MediumDubb\ConnectFour\Repositories\PlayerRepo;
 use MediumDubb\ConnectFour\Repositories\TokenRepo;
 
 final readonly class Board
 {
-
     public function __construct(
         private int  $id,
         private int  $player1,
@@ -17,7 +17,7 @@ final readonly class Board
         private ?int $winner = null
     ){}
 
-    public function fromDB(array $row): self {
+    public static function fromDB(array $row): self {
         return new self(
             id: $row['id'],
             player1: $row['player1'],

@@ -10,7 +10,7 @@ class PlayerResponse
         public int $id
     ) {}
 
-    public static function fromDomain(Player $player): self
+    public static function fromDomain(Player $player): ?self
     {
         return new self(
             id: $player->getPlayerID(),

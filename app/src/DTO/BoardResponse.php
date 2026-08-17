@@ -22,31 +22,37 @@ class BoardResponse
      */
     public static function fromDomain(Board $board): self
     {
+        $p2 = $board->getPlayer2() ? PlayerResponse::fromDomain($board->getPlayer2()) : null;
+        $tokens = empty($board->getTokens()) ? [] :
+            array_map(
+                fn (Token $token) => TokenResponse::fromDomain($token),
+                $board->getTokens()
+            );
         return new self(
             id: $board->getBoardID(),
             player1: PlayerResponse::fromDomain($board->getPlayer1()),
-            player2: PlayerResponse::fromDomain($board->getPlayer2()),
+            player2: $p2,
             current_player: $board->getCurrentPlayer(),
             winner: $board->getWinner(),
-            tokens: array_map(
-                fn (Token $token) => TokenResponse::fromDomain($token),
-                $board->getTokens()
-            ),
+            tokens: $tokens,
         );
     }
 
     public function toArray(): array
     {
+        $p2 = $this->player2?->toArray();
+        $tokens = empty($this->tokens) ? [] : array_map(
+            fn (TokenResponse $token) => $token->toArray(),
+            $this->tokens
+        );
+
         return [
-            'id'    => $this->id,
+            'id' => $this->id,
             'player1'  => $this->player1->toArray(),
-            'player2' => $this->player2->toArray(),
+            'player2' => $p2,
             'current_player' => $this->current_player,
             'winner' => $this->winner,
-            'tokens' => array_map(
-                fn (TokenResponse $token) => $token->toArray(),
-                $this->tokens
-            ),
+            'tokens' => $tokens
         ];
     }
 }

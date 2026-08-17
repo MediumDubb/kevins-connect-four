@@ -12,7 +12,7 @@ final readonly class Token
         private int $board_column
     ){}
 
-    public function fromDB(array $row): self
+    public static function fromDB(array $row): self
     {
         return new self(
             id: $row['id'],
