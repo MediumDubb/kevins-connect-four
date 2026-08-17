@@ -3,11 +3,14 @@
 namespace MediumDubb\ConnectFour\Repositories;
 
 use MediumDubb\ConnectFour\Database\PDOConnector;
+use MediumDubb\ConnectFour\Domains\Player;
+use MediumDubb\ConnectFour\Exceptions\ApiException;
+use PDO;
 
 class PlayerRepo
 {
     private PDOConnector $db;
-    private const string TABLE = 'players';
+    private const string TABLE_NAME = 'players';
 
     private const array DB_COLUMNS = [
         'id',
@@ -18,24 +21,35 @@ class PlayerRepo
         $this->db = new PDOConnector();
     }
 
-    public function getNewPlayerID(): string
+    public function getNewPlayerID(): int
     {
         $this->db->run(
-            "INSERT INTO players (id) VALUES (NULL)"
+            "INSERT INTO ". self::TABLE_NAME ." () VALUES ()"
         );
 
         return $this->db->pdo->lastInsertId();
     }
 
-    public function getPlayerByID(string $playerID): string
+    /**
+     * @throws ApiException
+     */
+    public function getPlayerByID(string $playerID): Player
     {
         $stmt = $this->db->run(
-            "SELECT id FROM players WHERE id = :id",
+            "SELECT * FROM ". self::TABLE_NAME ." WHERE id = :id",
             [
                 ':id' => $playerID
             ]
         );
 
-        return $stmt->fetchColumn();
+        return $this->mapToModel( $stmt->fetch(PDO::FETCH_ASSOC));
+    }
+
+    /**
+     * @throws ApiException
+     */
+    private function mapToModel(array $rowData): Player
+    {
+        return new Player($rowData);
     }
 }

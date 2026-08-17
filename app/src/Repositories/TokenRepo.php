@@ -3,6 +3,7 @@
 namespace MediumDubb\ConnectFour\Repositories;
 
 use MediumDubb\ConnectFour\Database\PDOConnector;
+use MediumDubb\ConnectFour\Domains\Token;
 use MediumDubb\ConnectFour\Exceptions\ApiException;
 use PDO;
 use PDOException;
@@ -54,26 +55,37 @@ class TokenRepo
         }
     }
 
+    /**
+     * @throws ApiException
+     */
     public function getTokensByBoardID(int $boardID): ?array
     {
         $stmt = $this->db->run(
             "SELECT 
-                    id AS id,
-                    board_id AS board_id,
-                    player_id AS player_id,
+                    board,
+                    player,
                     board_column
-                    FROM boards
-                    WHERE id = :board_bin",
+                    FROM " . self::TABLE ."
+                    WHERE board = :boardID",
             [
-                'board_bin' => $boardID,
+                'boardID' => $boardID,
             ]
         );
 
-        return $stmt->fetch(PDO::FETCH_ASSOC) ?: null;
+        return $this->mapToModel($stmt->fetchAll(PDO::FETCH_ASSOC));
     }
 
-    private function mapToModel(array $rowData)
+    /**
+     * @throws ApiException
+     */
+    private function mapToModel(array $rowData, bool $single = false)
     {
+        $tokens = [];
 
+        foreach ($rowData as $row) {
+            $tokens[] = new Token($row);
+        }
+
+        return $single ? $tokens[0] : $tokens;
     }
 }

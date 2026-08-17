@@ -24,6 +24,7 @@ class CoreController
 
     public function getUid(): ?string
     {
+        $this->session->clear();
         if (!$uid = $this->session->get(self::UID_KEY)) {
             $uid = $_GET['playerID'] ?? $this->getPlayerRepo()->getNewPlayerID();
             $this->session->set(self::UID_KEY, $uid);

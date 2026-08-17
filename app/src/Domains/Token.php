@@ -2,13 +2,43 @@
 
 namespace MediumDubb\ConnectFour\Domains;
 
-class Token
+final readonly class Token
 {
+
     public function __construct(
-        public readonly string $id,
-        public readonly string $board_id,
-        public readonly string $player_id,
-        public readonly int $column,
-        public readonly int $row
-    ) {}
+        private int $id,
+        private int $board,
+        private int $player,
+        private int $board_column
+    ){}
+
+    public function fromDB(array $row): self
+    {
+        return new self(
+            id: $row['id'],
+            board: $row['board'],
+            player: $row['player'],
+            board_column: $row['board_column']
+        );
+    }
+
+    public function getTokenID(): int
+    {
+        return $this->id;
+    }
+
+    public function getBoardID(): int
+    {
+        return $this->board;
+    }
+
+    public function getPlayerID(): int
+    {
+        return $this->player;
+    }
+
+    public function getBoardColumn(): int
+    {
+        return $this->board_column;
+    }
 }

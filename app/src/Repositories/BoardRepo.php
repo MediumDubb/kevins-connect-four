@@ -32,6 +32,12 @@ class BoardRepo
      */
     public function create(string $player_id): Board
     {
+        if (filter_var($player_id, FILTER_VALIDATE_INT)) {
+            $player_id = intval($player_id);
+        } else {
+            throw new ApiException('InvalidPlayerID', 'Invalid player ID');
+        }
+
         try {
             $this->db->run(
                 "INSERT INTO boards (player1) VALUES (:player_one_id)",
@@ -103,7 +109,7 @@ class BoardRepo
 
             return $this->mapToModel($stmt->fetch(PDO::FETCH_ASSOC));
         } catch (PDOException $e) {
-            throw new ApiException('PDOServerSideError', 'A lookup error has occured', 500);
+            throw new ApiException('PDOServerSideError', 'Server error, lookup failed', 500);
         }
     }
 

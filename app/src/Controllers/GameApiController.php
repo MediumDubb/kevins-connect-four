@@ -3,11 +3,11 @@
 namespace MediumDubb\ConnectFour\Controllers;
 
 use JetBrains\PhpStorm\NoReturn;
+use MediumDubb\ConnectFour\Domains\Board;
 use MediumDubb\ConnectFour\Exceptions\ApiException;
 
 class GameApiController extends CoreController
 {
-    private ?string $playerID;
 
     private static array $user_actions = [
         'join',
@@ -28,15 +28,6 @@ class GameApiController extends CoreController
         'status_code' => null,
         'error_message' => null
     ];
-
-    /**
-     * @throws ApiException
-     */
-    public function __construct(){
-        parent::__construct();
-
-        $this->playerID = $this->getUid();
-    }
 
     // todo Fix bug with win condition not triggering on first possible chance to win (probably wrong token index)
 
@@ -96,8 +87,8 @@ class GameApiController extends CoreController
         try {
             $this->checkMethod('GET');
             $boardID = $this->getSafeBoardID();
-            $rowData = $this->getBoardRepo()->getBoardByID($boardID);
-            $responseObj = $this->getStatePayload($rowData);
+            $boardObj = $this->getBoardRepo()->getBoardByID($boardID);
+            $responseObj = $boardObj->getBoardState();
         } catch (ApiException $e) {
             $this->err_response_payload['status_code'] = $e->getCode();
             $this->err_response_payload['error_message'] = $e->getMessage();
@@ -120,8 +111,9 @@ class GameApiController extends CoreController
          */
         try {
             $this->checkMethod('POST');
-            $rowData = $this->getBoardRepo()->getNewBoardBoardObj($this->playerID);
-            $responseObj = $this->getStatePayload($rowData);
+            $playerID = $this->getUid();
+            $board = $this->getBoardRepo()->create($playerID);
+            $responseObj = $board->getBoardState();
         } catch (ApiException $e) {
             $this->err_response_payload['status_code'] = $e->getCode();
             $this->err_response_payload['error_message'] = $e->getMessage();
@@ -174,11 +166,12 @@ class GameApiController extends CoreController
     private function getTokenObj(): array
     {
         $boardID = $this->getSafeBoardID();
+        $playerID = $this->getUid();
 
         if (!empty($boardID) &&!empty($_GET['column'])) {
             return [
                 "room_id"       => $boardID,
-                "player_id"     => $this->playerID,
+                "player_id"     => $playerID,
                 "board_column"  => $_GET['column'],
             ];
         } else {
@@ -189,8 +182,9 @@ class GameApiController extends CoreController
     #[NoReturn]
     private function JSONPayload(array $payload): void
     {
+        $statusCode = $payload['status_code'] ?? 200;
         header('Content-Type: application/json; charset=utf-8');
-        http_response_code($payload['status_code']);
+        http_response_code($statusCode);
         echo json_encode($payload);
         exit;
     }
@@ -228,7 +222,7 @@ class GameApiController extends CoreController
     /**
      * @throws ApiException
      */
-    private function getStatePayload(array $boardData): array
+    private function getStatePayload(Board $boardData): Array
     {
         /**
          * "Current player" and "tokens" are not retrieved from the board row data in the DB
