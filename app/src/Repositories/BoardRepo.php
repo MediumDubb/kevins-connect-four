@@ -222,12 +222,19 @@ class BoardRepo
         return $stmt->fetchColumn() ?: null;
     }
 
-
     /**
-     * @throws ApiException
+     * @param $id
+     * @param $player1
+     * @param $player2
+     * @param $current_player
+     * @param $winner
+     * @return Board
+     *
+     *  ToDo - Need to figure out how validate and map all the data to the Board model
      */
-    private function mapToModel(array $rowData): Board
+
+    private function mapToBoard($id, $player1, $player2, $current_player, $winner): Board
     {
-        return new Board($rowData);
+        return new Board($id, $player1, $player2, $current_player, $winner);
     }
 }

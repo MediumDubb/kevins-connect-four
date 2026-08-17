@@ -46,10 +46,14 @@ class PlayerRepo
     }
 
     /**
-     * @throws ApiException
+     * @param $id
+     * @return Player
+     *
+     *  ToDo - Need to figure out how validate and map all the data to the Player model
      */
-    private function mapToModel(array $rowData): Player
+
+    private function mapToPlayer($id): Player
     {
-        return new Player($rowData);
+        return new Player($id);
     }
 }

@@ -76,16 +76,17 @@ class TokenRepo
     }
 
     /**
-     * @throws ApiException
+     * @param $id
+     * @param $board
+     * @param $player
+     * @param $board_column
+     * @return Token
+     *
+     *  ToDo - Need to figure out how validate and map all the data to the Token model
      */
-    private function mapToModel(array $rowData, bool $single = false)
+
+    private function mapToToken($id, $board, $player, $board_column): Token
     {
-        $tokens = [];
-
-        foreach ($rowData as $row) {
-            $tokens[] = new Token($row);
-        }
-
-        return $single ? $tokens[0] : $tokens;
+        return new Token($id, $board, $player, $board_column);
     }
 }

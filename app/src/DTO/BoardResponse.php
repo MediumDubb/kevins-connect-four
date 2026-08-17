@@ -3,7 +3,6 @@
 namespace MediumDubb\ConnectFour\DTO;
 
 use MediumDubb\ConnectFour\Domains\Board;
-use MediumDubb\ConnectFour\Domains\Player;
 use MediumDubb\ConnectFour\Domains\Token;
 use MediumDubb\ConnectFour\Exceptions\ApiException;
 
