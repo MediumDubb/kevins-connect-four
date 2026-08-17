@@ -45,17 +45,17 @@ class CoreController
 
     public function getPlayerRepo(): PlayerRepo
     {
-        return new PlayerRepo($this->db);
+        return new PlayerRepo();
     }
 
     public function getBoardRepo(): BoardRepo
     {
-        return new BoardRepo($this->db);
+        return new BoardRepo();
     }
 
     public function getTokenRepo(): TokenRepo
     {
-        return new TokenRepo($this->db);
+        return new TokenRepo();
     }
 
     protected function getBaseURI(): string

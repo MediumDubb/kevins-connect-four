@@ -2,7 +2,6 @@
 
 namespace MediumDubb\ConnectFour\Domains;
 
-use MediumDubb\ConnectFour\DTO\BoardResponse;
 use MediumDubb\ConnectFour\Exceptions\ApiException;
 use MediumDubb\ConnectFour\Repositories\PlayerRepo;
 use MediumDubb\ConnectFour\Repositories\TokenRepo;
@@ -34,16 +33,10 @@ final readonly class Board
         return $this->id ? new TokenRepo()->getTokensByBoardID($this->id) : [];
     }
 
-    /**
-     * @throws ApiException
-     */
     public function getPlayer1(): ?Player {
         return $this->player1 ? new PlayerRepo()->getPlayerByID($this->player1) : null;
     }
 
-    /**
-     * @throws ApiException
-     */
     public function getPlayer2(): ?Player {
         return $this->player2 ? new PlayerRepo()->getPlayerByID($this->player2) : null;
     }
@@ -59,5 +52,10 @@ final readonly class Board
     public function getBoardID(): int
     {
         return $this->id;
+    }
+
+    public function boardIsFull(): bool
+    {
+        return $this->player2 === null;
     }
 }

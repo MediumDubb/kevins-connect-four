@@ -1,160 +1,94 @@
 <?php
 
-namespace MediumDubb\ConnectFour\Controllers;
+namespace MediumDubb\ConnectFour\Services;
 
-use JetBrains\PhpStorm\NoReturn;
-use MediumDubb\ConnectFour\DTO\BoardResponse;
+use MediumDubb\ConnectFour\Domains\Board;
 use MediumDubb\ConnectFour\Exceptions\ApiException;
-use MediumDubb\ConnectFour\Services\BoardCreateRequest;
-use MediumDubb\ConnectFour\Services\BoardJoinRequest;
-use MediumDubb\ConnectFour\Services\BoardStateRequest;
-use MediumDubb\ConnectFour\Services\TokenDropRequest;
 
-class GameApiController extends CoreController
+final readonly class TokenDropRequest
 {
-    private array $err_response_payload = [
-        'status_code' => null,
-        'error_message' => null
-    ];
+    private const string BOARD_PARAM = 'boardId';
+    private const string PLAYER_PARAM = 'playerId';
+    private const string COLUMN_PARAM = 'column';
 
-    // todo Fix bug with win condition not triggering on first possible chance to win (probably wrong token index)
 
-    #[NoReturn]
-    public function dropToken(): void
-    {
-        /**
-         *  1. validate request
-         *      a. check for all required data
-         *      b. check request is from the correct player
-         *      c. make sure the move is valid
-         *  2. Set the token
-         *  2. check for winner
-         *      a. if found
-         *          ia. update winner
-         *      b. if not found
-         *          ib. do not update player turns
-         *  4. send updated board state
-         */
-        $responseObj = [];
+    public function __construct(
+        private int  $board,
+        private int  $player,
+        private int $column,
+        private bool $winningMove = false
+    ){}
 
-        try {
-            $tokenRequest = TokenDropRequest::fromQueryParams();
-            $board = $this->getBoardRepo()->getBoardByID($tokenRequest->getBoardID());
-            if ($winnerId = $this->getWinnerId($board->getTokens(), $tokenObj)) {
-                $this->getBoardRepo()->setBoardWinner($winnerId, $boardID);
-            } else {
-                $this->getBoardRepo()->alternatePlayerTurn($boardID);
-            }
-            $this->getTokenRepo()->setToken($tokenObj);
-            $this->getBoardSate();
-        } catch (ApiException $e) {
-            $this->err_response_payload['status_code'] = $e->getCode();
-            $this->err_response_payload['error_message'] = $e->getMessage();
-            $responseObj = $this->err_response_payload;
+    /**
+     * @throws ApiException
+     */
+    public static function fromQueryParams(): self {
+        $playerId = $_GET[self::PLAYER_PARAM] ?? null;
+        $boardId = $_GET[self::BOARD_PARAM] ?? null;
+        $column = $_GET[self::COLUMN_PARAM] ?? null;
+
+        if ($_SERVER['REQUEST_METHOD'] !== 'GET') {
+            throw new ApiException("InvalidRequest", "Invalid request method", 405);
         }
 
-        $this->JSONPayload($responseObj);
-    }
-
-    // used for all responses
-    #[NoReturn]
-    public function getBoardSate(): void
-    {
-        /**
-         *  1. validate request
-         *      a. extract boardID -> getSafeBoardID()
-         *      b. check that boardID is valid -> getBoardByID()
-         *          b1. board exists
-         *          b2. board is not complete
-         *  2. Retrieve board state -> Get result from successful check
-         *  3. Send response
-         */
-
-        try {
-            $stateRequest = BoardStateRequest::fromQueryParams();
-            $board = $stateRequest->getBoard();
-            $boardResponse = BoardResponse::fromDomain($board);
-            $responseObj = $boardResponse->toArray();
-        } catch (ApiException $e) {
-            $this->err_response_payload['status_code'] = $e->getCode();
-            $this->err_response_payload['error_message'] = $e->getMessage();
-            $responseObj = $this->err_response_payload;
+        if (
+            $playerId === null || $boardId === null || $column === null
+        ) {
+            throw new ApiException("InvalidRequest", "Incomplete token request", 400);
         }
 
-        $this->JSONPayload($responseObj);
-    }
-
-    #[NoReturn]
-    public function create(): void
-    {
-        /**
-         *  1. validate request
-         *  2. get user ID
-         *  3. Create board in DB
-         *  4. Retrieve board state
-         *  5. Send response
-         */
-        try {
-            $createRequest = BoardCreateRequest::validateRequestMethod($this->getUid());
-            $board = $createRequest->getNewBoard();
-            $boardResponse = BoardResponse::fromDomain($board);
-            $responseObj = $boardResponse->toArray();
-        } catch (ApiException $e) {
-            $this->err_response_payload['status_code'] = $e->getCode();
-            $this->err_response_payload['error_message'] = $e->getMessage();
-            $responseObj = $this->err_response_payload;
+        if (
+            (!filter_var($playerId, FILTER_VALIDATE_INT) || $playerId === '0') ||
+            (!filter_var($boardId, FILTER_VALIDATE_INT) || $boardId === '0' ) ||
+            !filter_var($column, FILTER_VALIDATE_INT)
+        ) {
+            throw new ApiException("InvalidRequest", "Invalid token request", 400);
         }
 
-        $this->JSONPayload($responseObj);
+        $winingMove = true;
+
+        return new self(
+            board: $_GET[self::BOARD_PARAM],
+            player: $_GET[self::PLAYER_PARAM],
+            column: $_GET[self::COLUMN_PARAM],
+            winningMove: $winingMove
+        );
     }
 
-    #[NoReturn]
-    public function join(): void
-    {
-        /**
-         *  1. validate request
-         *      a. extract boardID
-         *      b. check that boardID is valid
-         *  2. Check user
-         *      a. if the board does not have an open spot, or the UID does not match any current players then reject their join with an error
-         *  2. Retrieve board state
-         *  3. Send response
-         */
-        try {
-            $joinRequest = BoardJoinRequest::fromQueryParams();
-            $board = $joinRequest->joinBoard($this->getUid());
-            $boardResponse = BoardResponse::fromDomain($board);
-            $responseObj = $boardResponse->toArray();
-        } catch (ApiException $e) {
-            $this->err_response_payload['status_code'] = $e->getCode();
-            $this->err_response_payload['error_message'] = $e->getMessage();
-            $responseObj = $this->err_response_payload;
-        }
-
-        $this->JSONPayload($responseObj);
+    public function getBoardID(): int {
+        return $this->board;
     }
 
-    #[NoReturn]
-    private function JSONPayload(array $payload): void
+    public function getPlayerID(): int
     {
-        $statusCode = $payload['status_code'] ?? 200;
-        header('Content-Type: application/json; charset=utf-8');
-        http_response_code($statusCode);
-        echo json_encode($payload);
-        exit;
+        return $this->player;
+    }
+
+    public function getColumn(): int
+    {
+        return $this->column;
+    }
+
+    public function isWinningMove(): bool
+    {
+        return $this->winningMove;
+    }
+
+    private function setToken()
+    {
+        $this->validateDropRequest();
     }
 
     /**
-     * @param array $tokens
-     * @param array $currentToken
-     * @return bool|string
-     * get current token index
-     * check row forward/inverse
-     * check col forward/inverse
-     * check diag left forward/inverse
-     * check diag right forward/inverse
+     * @throws ApiException
      */
-    private function getWinnerId(array $tokens, array $currentToken): bool|string
+    private function validateDropRequest(Board $board): void
+    {
+        $tokens = $board->getTokens();
+        $currentPlayerID = $board->getCurrentPlayer();
+    }
+
+    private function getWinnerId(array $tokens): bool|string
     {
         // after 7 tokens have been placed, check all diagonal, column, and row options for last token placed
         $player_id = $this->getUid();
@@ -272,19 +206,7 @@ class GameApiController extends CoreController
         return false;
     }
 
-    /**
-     * [  0,  1,  2,  3,  4,  5,  6 ]
-     * [  7,  8,  9, 10, 11, 12, 13 ]
-     * [ 14, 15, 16, 17, 18, 19, 20 ]
-     * [ 21, 22, 23, 24, 25, 26, 27 ]
-     * [ 28, 29, 30, 31, 32, 33, 34 ]
-     * [ 35, 36, 37, 38, 39, 40, 41 ]
-     *
-     * We are trying to make a flat array of the whole board
-     * this will be inversed from the board view for users, tokens will go from top down instead of bottom up
-     * Once a flat structure is achieved we can use some simple math to check for a winner
-    */
-    private static function getFlatTokenArray(array $tokens, int $lastMoveKey): array
+    private function getFlatTokenArray(array $tokens, int $lastMoveKey): array
     {
         $newArray = [];
         for ($i = 0; $i < 42; $i++) {

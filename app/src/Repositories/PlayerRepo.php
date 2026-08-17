@@ -4,7 +4,6 @@ namespace MediumDubb\ConnectFour\Repositories;
 
 use MediumDubb\ConnectFour\Database\PDOConnector;
 use MediumDubb\ConnectFour\Domains\Player;
-use MediumDubb\ConnectFour\Exceptions\ApiException;
 use PDO;
 
 class PlayerRepo
@@ -30,9 +29,6 @@ class PlayerRepo
         return $this->db->pdo->lastInsertId();
     }
 
-    /**
-     * @throws ApiException
-     */
     public function getPlayerByID(string $playerID): Player
     {
         $stmt = $this->db->run(

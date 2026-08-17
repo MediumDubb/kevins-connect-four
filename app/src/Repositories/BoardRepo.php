@@ -116,7 +116,7 @@ class BoardRepo
     /**
      * @throws ApiException
      */
-    public function setWinner(string $winnerID, string $boardID): void
+    public function setBoardWinner(string $winnerID, string $boardID): void
     {
         try {
             $this->db->run(
