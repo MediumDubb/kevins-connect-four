@@ -9,6 +9,7 @@ use MediumDubb\ConnectFour\Services\BoardCreateRequest;
 use MediumDubb\ConnectFour\Services\BoardJoinRequest;
 use MediumDubb\ConnectFour\Services\BoardStateRequest;
 use MediumDubb\ConnectFour\Services\TokenDropRequest;
+use MediumDubb\ConnectFour\Services\TokenHandler;
 
 class GameApiController extends CoreController
 {
@@ -35,18 +36,10 @@ class GameApiController extends CoreController
          *          ib. do not update player turns
          *  4. send updated board state
          */
-        $responseObj = [];
 
         try {
-            $tokenRequest = TokenDropRequest::fromQueryParams();
-            $board = $this->getBoardRepo()->getBoardByID($tokenRequest->getBoardID());
-            if ($winnerId = $this->getWinnerId($board->getTokens(), $tokenObj)) {
-                $this->getBoardRepo()->setBoardWinner($winnerId, $boardID);
-            } else {
-                $this->getBoardRepo()->alternatePlayerTurn($boardID);
-            }
-            $this->getTokenRepo()->setToken($tokenObj);
-            $this->getBoardSate();
+            $tokenHandler = new TokenHandler($this->getUid());
+            $responseObj = $tokenHandler->getResponseObj();
         } catch (ApiException $e) {
             $this->err_response_payload['status_code'] = $e->getCode();
             $this->err_response_payload['error_message'] = $e->getMessage();

@@ -30,7 +30,7 @@ final readonly class Board
      * @throws ApiException
      */
     public function getTokens(): array {
-        return $this->id ? new TokenRepo()->getTokensByBoardID($this->id) : [];
+        return new TokenRepo()->getTokensByBoardID($this->id);
     }
 
     public function getPlayer1(): ?Player {

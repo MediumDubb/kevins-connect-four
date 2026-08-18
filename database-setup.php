@@ -52,6 +52,7 @@ $db->run("
         board INT NOT NULL,
         player INT NOT NULL,
         board_column INT NOT NULL,
+        board_row INT NOT NULL,
         
         CONSTRAINT token_board
             FOREIGN KEY (board) REFERENCES boards(id),
@@ -60,7 +61,10 @@ $db->run("
             FOREIGN KEY (player) REFERENCES players(id),
         
         CONSTRAINT valid_column
-            CHECK (board_column BETWEEN 0 AND 6)
+            CHECK (board_column BETWEEN 0 AND 6),
+        
+        CONSTRAINT valid_row
+            CHECK (board_row BETWEEN 0 AND 5)
     )
 ");
 

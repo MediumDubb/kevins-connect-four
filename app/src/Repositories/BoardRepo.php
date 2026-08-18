@@ -131,15 +131,14 @@ class BoardRepo
                 ]
             );
         } catch (PDOException $e) {
-            throw new ApiException('PDOServerSideError', 'Internal server error: failed on winner assignment', 500);
+            throw new ApiException('PDOServerSideError', 'Internal server error: failed persisting winner', 500);
         }
-
     }
 
     /**
      * @throws ApiException
      */
-    public function alternatePlayerTurn(string $boardID): void
+    public function getUpdatedTurnByBoardID(string $boardID): Board
     {
         try {
             $stmt = $this->db->run(
@@ -160,7 +159,7 @@ class BoardRepo
             throw new ApiException('PDOServerSideError', 'Internal server error: failed on turn assignment', 500);
         }
 
-        $this->updatePlayerTurn( $boardID,  $nextPlayerID);
+        return $this->updatePlayerTurn( $boardID,  $nextPlayerID);
     }
 
     /**

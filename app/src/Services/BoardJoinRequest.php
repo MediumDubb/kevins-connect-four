@@ -8,7 +8,6 @@ use MediumDubb\ConnectFour\Repositories\BoardRepo;
 
 final readonly class BoardJoinRequest
 {
-
     private const string BOARD_PARAM = 'boardId';
 
     public function __construct(

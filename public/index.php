@@ -25,9 +25,9 @@ $router = AppRouter::getRouter();
 $router->get('/', [new PageController(), 'index']);
 $router->get('/join-room', [new GameApiController(), 'join']);
 $router->get('/get-board-state', [new GameApiController(), 'getBoardSate']);
+$router->get('/drop-token', [new GameApiController(), 'dropToken']);
 
 $router->post('/create-room', [new GameApiController(), 'create']);
-$router->post('/drop-token', [new GameApiController(), 'dropToken']);
 
 // Run the router using the server request data
 $router->dispatch();

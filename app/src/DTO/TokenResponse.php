@@ -3,33 +3,37 @@
 namespace MediumDubb\ConnectFour\DTO;
 
 use MediumDubb\ConnectFour\Domains\Token;
+use MediumDubb\ConnectFour\Exceptions\ApiException;
 
 class TokenResponse
 {
     public function __construct(
-        public int $id,
         public int $board,
         public int $player,
-        public int $board_column
+        public int $board_column,
+        public int $board_row
     ) {}
 
+    /**
+     * @throws ApiException
+     */
     public static function fromDomain(Token $token): self
     {
         return new self(
-            id: $token->getTokenID(),
             board: $token->getBoardID(),
             player: $token->getPlayerID(),
             board_column: $token->getBoardColumn(),
+            board_row: $token->getBoardRow(),
         );
     }
 
     public function toArray(): array
     {
         return [
-            'id'    => $this->id,
             'board'  => $this->board,
             'player' => $this->player,
             'board_column' => $this->board_column,
+            'board_row' => $this->board_row,
         ];
     }
 }

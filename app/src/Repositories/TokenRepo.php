@@ -28,30 +28,33 @@ class TokenRepo
     /**
      * @throws ApiException
      */
-    public function setToken(array $data): void
+    public function setToken(int $boardID, int $playerID, int $column, int $row): void
     {
         try {
             $this->db->run(
                 "INSERT INTO tokens 
                     (
-                        board_id,
-                        player_id,
-                        board_column
+                        board,
+                        player,
+                        board_column,
+                        board_row
                      ) 
                     VALUES 
                     (
                          :board_id,
                          :player_id,
-                         :board_column
+                         :board_column,
+                         :board_row
                      )",
                 [
-                    'board_id' => $data['room_id'],
-                    'player_id' => $data['player_id'],
-                    'board_column' => $data['board_column'],
+                    'board_id' => $boardID,
+                    'player_id' => $playerID,
+                    'board_column' => $column,
+                    'board_row' => $row
                 ]
             );
         } catch (PDOException $e) {
-            throw new ApiException('Failed to set token', 500);
+            throw new ApiException('TokenPersistenceError', 'Failed to set token', 500);
         }
     }
 
@@ -60,38 +63,80 @@ class TokenRepo
      */
     public function getTokensByBoardID(int $boardID): array
     {
-        $stmt = $this->db->run(
-            "SELECT 
+        try {
+            $stmt = $this->db->run(
+                "SELECT 
                     board,
                     player,
-                    board_column
+                    board_column,
+                    board_row
                     FROM " . self::TABLE ."
-                    WHERE board = :boardID",
-            [
-                'boardID' => $boardID,
-            ]
-        );
-        $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+                    WHERE board = :boardID
+                    ORDER BY board_column ASC, board_row DESC",
+                [
+                    'boardID' => $boardID,
+                ]
+            );
+            $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-        if (!empty($rows)) {
-            return array_map(fn($row) => Token::fromDB($row), $rows);
+            if (!empty($rows)) {
+                return array_map(fn($row) => Token::fromDB($row), $rows);
+            } else {
+                return [];
+            }
+        } catch (PDOException $e) {
+            throw new ApiException('Failed to get tokens', 500);
         }
-
-        return $rows;
     }
 
     /**
-     * @param $id
-     * @param $board
-     * @param $player
-     * @param $board_column
-     * @return Token
-     *
-     *  ToDo - Need to figure out how validate and map all the data to the Token model
+     * @throws ApiException
      */
-
-    private function mapToToken($id, $board, $player, $board_column): Token
+    public function getPlayerMovesByCol(int $boardID): array
     {
-        return new Token($id, $board, $player, $board_column);
+        try {
+            $stmt = $this->db->run(
+                "SELECT id, board_column, JSON_ARRAYAGG(player) 
+                        AS all_players 
+                        FROM ". self::TABLE ." 
+                        WHERE board = :boardID 
+                        GROUP BY board_column
+                        ORDER BY id ASC;",
+                [
+                    'boardID' => $boardID,
+                ]
+            );
+            $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+            return !empty($rows) ? $rows : [];
+
+        } catch (PDOException $e) {
+            throw new ApiException('Failed to get tokens', 500);
+        }
+    }
+
+    /**
+     * @throws ApiException
+     */
+    public function getColRowCount(int $boardID, int $boardColumn): int
+    {
+        try {
+            $stmt = $this->db->run(
+                "SELECT COUNT(*) 
+                        AS column_tokens 
+                        FROM ". self::TABLE ." 
+                        WHERE board = :boardID
+                        AND board_column = :boardColumn;",
+                [
+                    'boardID' => $boardID,
+                    'boardColumn' => $boardColumn,
+                ]
+            );
+
+            return $stmt->fetchColumn();
+
+        } catch (PDOException $e) {
+            throw new ApiException('Failed to get column token count', 500);
+        }
     }
 }

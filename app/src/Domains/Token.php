@@ -2,29 +2,26 @@
 
 namespace MediumDubb\ConnectFour\Domains;
 
+use MediumDubb\ConnectFour\Exceptions\ApiException;
+use MediumDubb\ConnectFour\Repositories\TokenRepo;
+
 final readonly class Token
 {
-
     public function __construct(
-        private int $id,
         private int $board,
         private int $player,
-        private int $board_column
+        private int $board_column,
+        private ?int $board_row = null
     ){}
 
     public static function fromDB(array $row): self
     {
         return new self(
-            id: $row['id'],
             board: $row['board'],
             player: $row['player'],
-            board_column: $row['board_column']
+            board_column: $row['board_column'],
+            board_row: $row['board_row']
         );
-    }
-
-    public function getTokenID(): int
-    {
-        return $this->id;
     }
 
     public function getBoardID(): int
@@ -40,5 +37,13 @@ final readonly class Token
     public function getBoardColumn(): int
     {
         return $this->board_column;
+    }
+
+    /**
+     * @throws ApiException
+     */
+    public function getBoardRow(): int
+    {
+        return is_int($this->board_row) ? $this->board_row : new TokenRepo()->getColRowCount($this->board, $this->board_column);
     }
 }

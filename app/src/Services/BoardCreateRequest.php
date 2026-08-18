@@ -33,6 +33,11 @@ final readonly class BoardCreateRequest
         );
     }
 
+    public function getPlayer1ID(): int
+    {
+        return $this->playerId;
+    }
+
     /**
      * @throws ApiException
      */
