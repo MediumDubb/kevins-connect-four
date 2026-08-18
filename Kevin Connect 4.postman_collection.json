@@ -1,0 +1,301 @@
+{
+  "info": {
+    "_postman_id": "710842f4-748e-4d85-a754-7c1d7b4f3b9e",
+    "name": "Kevin Connect 4",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "30870726",
+    "_collection_link": "https://go.postman.co/collection/30870726-710842f4-748e-4d85-a754-7c1d7b4f3b9e?source=collection_link"
+  },
+  "item": [
+    {
+      "name": "join-room",
+      "protocolProfileBehavior": {
+        "disableBodyPruning": true
+      },
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json",
+            "type": "text"
+          }
+        ],
+        "body": {
+          "mode": "urlencoded",
+          "urlencoded": [
+            {
+              "key": "boardID",
+              "value": "144a655c-7045-11f1-a087-e847ab828a30",
+              "type": "text",
+              "uuid": "679b640f-8035-4b99-b0f7-3f97c2e8955b"
+            }
+          ]
+        },
+        "url": {
+          "raw": "http://c4.local/join-room",
+          "protocol": "http",
+          "host": [
+            "c4",
+            "local"
+          ],
+          "path": [
+            "join-room"
+          ],
+          "query": [
+            {
+              "key": "room_id",
+              "value": "8a592862-702e-11f1-a087-e847ab828a30",
+              "disabled": true
+            },
+            {
+              "key": "player_id",
+              "value": "8a5904f4-702e-11f1-a087-e847ab828a30",
+              "disabled": true
+            },
+            {
+              "key": "column",
+              "value": "1",
+              "disabled": true
+            }
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "get-board-state",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://c4.local/get-board-state",
+          "protocol": "http",
+          "host": [
+            "c4",
+            "local"
+          ],
+          "path": [
+            "get-board-state"
+          ]
+        }
+      },
+      "response": [
+        {
+          "name": "get-board-state",
+          "originalRequest": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://c4.local/get-board-state?boardId=1",
+              "protocol": "http",
+              "host": [
+                "c4",
+                "local"
+              ],
+              "path": [
+                "get-board-state"
+              ],
+              "query": [
+                {
+                  "key": "boardId",
+                  "value": "1"
+                }
+              ]
+            }
+          },
+          "status": "OK",
+          "code": 200,
+          "_postman_previewlanguage": null,
+          "header": [
+            {
+              "key": "Date",
+              "value": "Tue, 18 Aug 2026 20:36:58 GMT"
+            },
+            {
+              "key": "Server",
+              "value": "Apache/2.4.63 (Unix) OpenSSL/3.6.0 PHP/8.4.16"
+            },
+            {
+              "key": "X-Powered-By",
+              "value": "PHP/8.4.16"
+            },
+            {
+              "key": "Expires",
+              "value": "Thu, 19 Nov 1981 08:52:00 GMT"
+            },
+            {
+              "key": "Cache-Control",
+              "value": "no-store, no-cache, must-revalidate"
+            },
+            {
+              "key": "Pragma",
+              "value": "no-cache"
+            },
+            {
+              "key": "Content-Length",
+              "value": "90"
+            },
+            {
+              "key": "Keep-Alive",
+              "value": "timeout=5, max=100"
+            },
+            {
+              "key": "Connection",
+              "value": "Keep-Alive"
+            },
+            {
+              "key": "Content-Type",
+              "value": "application/json; charset=utf-8"
+            }
+          ],
+          "cookie": [],
+          "body": "{\n    \"id\": 1,\n    \"player1\": {\n        \"id\": 1\n    },\n    \"player2\": null,\n    \"current_player\": null,\n    \"winner\": null,\n    \"tokens\": []\n}"
+        }
+      ]
+    },
+    {
+      "name": "create-room",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "urlencoded",
+          "urlencoded": []
+        },
+        "url": {
+          "raw": "http://c4.local/create-room",
+          "protocol": "http",
+          "host": [
+            "c4",
+            "local"
+          ],
+          "path": [
+            "create-room"
+          ]
+        }
+      },
+      "response": [
+        {
+          "name": "create-room",
+          "originalRequest": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "urlencoded",
+              "urlencoded": []
+            },
+            "url": {
+              "raw": "http://c4.local/create-room",
+              "protocol": "http",
+              "host": [
+                "c4",
+                "local"
+              ],
+              "path": [
+                "create-room"
+              ]
+            }
+          },
+          "status": "OK",
+          "code": 200,
+          "_postman_previewlanguage": null,
+          "header": [
+            {
+              "key": "Date",
+              "value": "Mon, 17 Aug 2026 15:16:02 GMT"
+            },
+            {
+              "key": "Server",
+              "value": "Apache/2.4.63 (Unix) OpenSSL/3.6.0 PHP/8.4.16"
+            },
+            {
+              "key": "X-Powered-By",
+              "value": "PHP/8.4.16"
+            },
+            {
+              "key": "Expires",
+              "value": "Thu, 19 Nov 1981 08:52:00 GMT"
+            },
+            {
+              "key": "Cache-Control",
+              "value": "no-store, no-cache, must-revalidate"
+            },
+            {
+              "key": "Pragma",
+              "value": "no-cache"
+            },
+            {
+              "key": "Content-Length",
+              "value": "92"
+            },
+            {
+              "key": "Keep-Alive",
+              "value": "timeout=5, max=100"
+            },
+            {
+              "key": "Connection",
+              "value": "Keep-Alive"
+            },
+            {
+              "key": "Content-Type",
+              "value": "application/json; charset=utf-8"
+            }
+          ],
+          "cookie": [],
+          "body": "{\n    \"id\": 19,\n    \"player1\": {\n        \"id\": 18\n    },\n    \"player2\": null,\n    \"current_player\": null,\n    \"winner\": null,\n    \"tokens\": []\n}"
+        }
+      ]
+    },
+    {
+      "name": "drop-token",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://c4.local/drop-token",
+          "protocol": "http",
+          "host": [
+            "c4",
+            "local"
+          ],
+          "path": [
+            "drop-token"
+          ]
+        }
+      },
+      "response": []
+    }
+  ],
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "packages": {},
+        "requests": {},
+        "exec": [
+          ""
+        ]
+      }
+    },
+    {
+      "listen": "test",
+      "script": {
+        "type": "text/javascript",
+        "packages": {},
+        "requests": {},
+        "exec": [
+          ""
+        ]
+      }
+    }
+  ],
+  "variable": [
+    {
+      "key": "example_payload",
+      "value": "",
+      "type": "default"
+    }
+  ]
+}
