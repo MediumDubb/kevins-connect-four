@@ -72,7 +72,7 @@ class TokenRepo
                     board_row
                     FROM " . self::TABLE ."
                     WHERE board = :boardID
-                    ORDER BY board_column ASC, board_row DESC",
+                    ORDER BY board_column ASC, board_row ASC",
                 [
                     'boardID' => $boardID,
                 ]

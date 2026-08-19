@@ -3,18 +3,25 @@
 namespace MediumDubb\ConnectFour\Domains;
 
 use MediumDubb\ConnectFour\Exceptions\ApiException;
+use MediumDubb\ConnectFour\Repositories\BoardRepo;
 use MediumDubb\ConnectFour\Repositories\PlayerRepo;
 use MediumDubb\ConnectFour\Repositories\TokenRepo;
 
 final readonly class Board
 {
+    public int $cols;
+    public int $rows;
+
     public function __construct(
         private int  $id,
         private int  $player1,
         private ?int $player2 = null,
         private ?int $current_player = null,
         private ?int $winner = null
-    ){}
+    ){
+        $this->rows = 6;
+        $this->cols = 7;
+    }
 
     public static function fromDB(array $row): self {
         return new self(
@@ -57,5 +64,47 @@ final readonly class Board
     public function boardIsFull(): bool
     {
         return $this->player2 === null;
+    }
+
+    /**
+     * @throws ApiException
+     */
+    public function setWinner(int $playerID): void
+    {
+        new BoardRepo()->setBoardWinner($this->id, $playerID);
+    }
+
+    /**
+     * @throws ApiException
+     */
+    public function getBoardAsArray(): array
+    {
+        // build board structure from Tokens
+        $boardRows = [];
+        $tokens = $this->getTokens();
+
+//        [
+//            [0,1,2,3,4,5,6,7],  row 0
+//            [0,1,2,3,4,5,6,7],
+//            [0,1,2,3,4,5,6,7],
+//            [0,1,2,3,4,5,6,7],
+//            [0,1,2,3,4,5,6,7],
+//            [0,1,2,3,4,5,6,7]   row 5
+//        ]
+        for ($r = ($this->rows - 1); $r >= 0; $r--) {
+            for ($c = 0; $c < $this->cols; $c++) {
+                $pID = null;
+                foreach ($tokens as $tokenIndex => $token) {
+                    if ($token->getBoardColumn() === $c && $token->getBoardRow() === $r) {
+                        $pID = $token->getPlayerID();
+                        unset($tokens[$tokenIndex]);
+                        break;
+                    }
+                }
+                $boardRows[$r][] = $pID;
+            }
+        }
+
+        return $boardRows;
     }
 }
