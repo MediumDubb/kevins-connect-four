@@ -29,7 +29,7 @@ final readonly class TokenHandler
      */
     public function getResponseObj(): array
     {
-//        $this->validatePlayerMove();
+        $this->validatePlayerMove();
         $this->setCurrentToken();
         $winnerID = $this->getWinner();
         if ($winnerID) {
@@ -75,8 +75,8 @@ final readonly class TokenHandler
     {
         $currentRow = $this->currentToken->getBoardRow();
         $currentColumn = $this->currentToken->getBoardColumn();
-        $skipLeft = $this->skipCheck([$currentRow, $currentColumn]);
-        $skipRight = $this->skipCheck([$currentRow, $currentColumn], false);
+        $skipL2R = $this->skipCheck([$currentRow, $currentColumn]);
+        $skipR2L = $this->skipCheck([$currentRow, $currentColumn], false);
         $playerID = $this->currentToken->getPlayerID();
         $boardRows = $this->board->getBoardAsArray();
         $connectCounter = 0;
@@ -86,7 +86,7 @@ final readonly class TokenHandler
         if ($currentRow <= 3) {
             for ($i = 0; $i < $currentRow; $i++) {
                 $connectCounter = ($boardRows[$currentRow + $i][$currentColumn] === $playerID) ? $connectCounter + 1 : 0;
-                $winner = ($connectCounter === 4);
+                if ($winner = ($connectCounter === 4)) { break; }
             }
             $connectCounter = 0;
         }
@@ -95,65 +95,62 @@ final readonly class TokenHandler
         if (!$winner) {
             for ($i = 0; $i < $this->board->cols; $i++) {
                 $connectCounter = ($boardRows[$currentRow][$i] === $playerID) ? $connectCounter + 1 : 0;
-                $winner = ($connectCounter === 4);
+                if ($winner = ($connectCounter === 4)) { break; }
             }
             $connectCounter = 0;
         }
 
         // left horizontal - find topmost cord and traverse diagonal in downward left direction counting concurrent player ID's and see if four match in a row
-        if (!$winner && !$skipLeft) {
+        if (!$winner && !$skipL2R) {
             $topLeftDownCord = $this->getTopLeftCord($currentRow, $currentColumn);
             $newCurrRow = $topLeftDownCord[0];
             $newCurrCol = $topLeftDownCord[1];
             for ($i = 0; $i < 5; $i++) {
                 $connectCounter = ($boardRows[$newCurrRow][$newCurrCol] === $playerID) ? $connectCounter + 1 : 0;
-                $winner = ($connectCounter === 4);
-                $newCurrRow++;
+                $newCurrRow--;
                 $newCurrCol++;
-                if ($newCurrRow > 5 || $newCurrCol > 6) { break; }
+                if ($newCurrRow > 5 || $newCurrCol > 6 || ($winner = ($connectCounter === 4))) { break; }
             }
             $connectCounter = 0;
         }
 
         // right horizontal - find topmost cord and traverse diagonal in downward right direction counting concurrent player ID's and see if four match in a row
-        if (!$winner && !$skipRight) {
+        if (!$winner && !$skipR2L) {
             $topRightDownCord = $this->getTopRightCord($currentRow, $currentColumn);
             $newCurrRow = $topRightDownCord[0];
             $newCurrCol = $topRightDownCord[1];
             for ($i = 0; $i < 5; $i++) {
                 $connectCounter = ($boardRows[$newCurrRow][$newCurrCol] === $playerID) ? $connectCounter + 1 : 0;
-                $winner = ($connectCounter === 4);
-                $newCurrRow++;
+                $newCurrRow--;
                 $newCurrCol--;
-                if ($newCurrRow > 5 || $newCurrCol < 0) { break; }
+                if ($newCurrRow > 5 || $newCurrCol < 0 || ($winner = ($connectCounter === 4))) { break; }
             }
-            $connectCounter = 0;
         }
 
-//        [
-//            [0,1,2,3,4,5,6,7],  row 5
-//            [0,1,2,3,4,5,6,7],
-//            [0,1,2,3,4,5,6,7],
-//            [0,1,2,3,4,5,6,7],
-//            [0,1,2,3,4,5,6,7],
-//            [0,1,2,3,4,5,6,7]   row 0
-//        ]
+//      [   L-R         R-L
+//          [0,1,2,3,4,5,6], row 5
+//          [0,1,2,3,4,5,6],
+//          [0,1,2,3,4,5,6],
+//          [0,1,2,3,4,5,6],
+//          [0,1,2,3,4,5,6],
+//          [0,1,2,3,4,5,6], row 0
+//      ]   R-L         L-R
 
-        /** Down-Right
-         * if cord [0,3] topLeft = [0, 3]
-         * if cord [1,3] topLeft = [0, 2]
-         * if cord [2,3] topLeft = [0, 1]
-         * if cord [3,3] topLeft = [0, 0]
-         * if cord [4,3] topLeft = [1, 0]
-         * if cord [5,3] topLeft = [2, 0]
+        /** Right-Left | (row + col) > 5 ? [5, (((row+col) % 5) - 6)] : [(row + col),6]
+         * if cord [5,3] topLeft = [5, 3]
+         * if cord [4,3] topLeft = [5, 4]
+         * if cord [3,3] topLeft = [5, 5]
+         * if cord [2,3] topLeft = [5, 6]
+         * if cord [1,3] topLeft = [4, 6]
+         * if cord [0,3] topLeft = [3, 6]
          * ------------------------------
-         * Down-Left
-         * if cord [0,3] topLeft = [0, 3]
-         * if cord [1,3] topLeft = [0, 4]
-         * if cord [2,3] topLeft = [0, 5]
-         * if cord [3,3] topLeft = [0, 6]
-         * if cord [4,3] topLeft = [0, 7]
-         * if cord [5,3] topLeft = [1, 7]
+         * Left-Right | (row + col) > 5 ? [5, ((row + col) % 5)] : [(row + col), 0]
+         * if cord [5,3] topLeft = [5, 3]
+         * if cord [4,3] topLeft = [5, 2]
+         * if cord [3,3] topLeft = [5, 1]
+         * if cord [2,3] topLeft = [5, 0]
+         * if cord [1,3] topLeft = [4, 0]
+         * if cord [0,3] topLeft = [3, 0]
          */
 
         if ( $winner ) {
@@ -163,26 +160,26 @@ final readonly class TokenHandler
         return false;
     }
 
-    private function skipCheck(array $rowColCords, bool $checkLeft = true): bool
+    private function skipCheck(array $rowColCords, bool $checkR2L = true): bool
     {
-        $direction = $checkLeft ? 'down-left' : 'down-right';
+        $direction = $checkR2L ? 'right-left' : 'left-right';
         $deadCords = [
-            'down-right' => [
-                // row => [cols]
-                0 => [5,6,7],
-                1 => [6,7],
-                2 => [7],
-                3 => [0],
+            'left-right' => [
+                5 => [0,1,2],
                 4 => [0,1],
-                5 => [0,1,2]
+                3 => [0],
+                2 => [6],
+                1 => [5,6],
+                0 => [4,5,6],
             ],
-            'down-left' => [
-                0 => [0],
+            'right-left' => [
+                // row => [cols]
+                5 => [4,5,6],
+                4 => [5,6],
+                3 => [6],
+                2 => [0],
                 1 => [0,1],
-                2 => [0,1,2],
-                3 => [5,6,7],
-                4 => [6,7],
-                5 => [7],
+                0 => [0,1,2]
             ]
         ];
 
@@ -191,19 +188,13 @@ final readonly class TokenHandler
 
     private function getTopLeftCord($currentRow, $currentColumn): array
     {
-        if (($currentRow === 0)) {
-            return [$currentRow, $currentColumn];
-        } else {
-            return ($currentRow > $currentColumn) ? [($currentRow % $currentColumn), 0] : [0, ($currentRow % $currentColumn)];
-        }
+        $sum = $currentRow + $currentColumn;
+        return $sum > 5 ? [5, (($sum % 5) - 6)] : [$sum ,6];
     }
 
     private function getTopRightCord($currentRow, $currentColumn): array
     {
-        if (($currentRow === 0)) {
-            return [$currentRow, $currentColumn];
-        } else {
-            return ($currentRow + $currentColumn > 7) ? [($currentRow + $currentColumn % 7), 7] : [0, ($currentRow + $currentColumn)];
-        }
+        $sum = $currentRow + $currentColumn;
+        return $sum > 5 ? [5, ($sum % 5)] : [$sum, 0];
     }
 }

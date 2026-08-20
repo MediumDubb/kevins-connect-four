@@ -121,10 +121,9 @@ class BoardRepo
         try {
             $this->db->run(
                 "UPDATE " . self::TABLE . "
-                    SET winner_id = :winner_id,
-                        board_finished = 1
+                    SET winner = :winner_id
                     WHERE id = :id
-                    AND board_finished = 0",
+                    AND winner = NULL",
                 [
                     'winner_id' => $winnerID,
                     'id' => $boardID

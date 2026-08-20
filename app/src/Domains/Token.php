@@ -46,4 +46,10 @@ final readonly class Token
     {
         return is_int($this->board_row) ? $this->board_row : new TokenRepo()->getColRowCount($this->board, $this->board_column);
     }
+
+    public function getTokenCords(): array
+    {
+        return [$this->board_row, $this->board_column];
+    }
+
 }
