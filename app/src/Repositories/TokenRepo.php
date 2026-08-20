@@ -134,6 +134,7 @@ class TokenRepo
             );
 
             return $stmt->fetchColumn();
+            // can this return NULL?
 
         } catch (PDOException $e) {
             throw new ApiException('Failed to get column token count', 500);

@@ -2,9 +2,7 @@
 
 namespace MediumDubb\ConnectFour\Services;
 
-use MediumDubb\ConnectFour\Domains\Board;
 use MediumDubb\ConnectFour\Exceptions\ApiException;
-use MediumDubb\ConnectFour\Repositories\BoardRepo;
 
 final readonly class BoardStateRequest
 {
@@ -43,13 +41,5 @@ final readonly class BoardStateRequest
 
     public function getBoardID(): int {
         return $this->board;
-    }
-
-    /**
-     * @throws ApiException
-     */
-    public function getBoard(): Board
-    {
-        return new BoardRepo()->getBoardByID($this->board);
     }
 }

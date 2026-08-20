@@ -3,12 +3,12 @@
 namespace MediumDubb\ConnectFour\Controllers;
 
 use JetBrains\PhpStorm\NoReturn;
+use MediumDubb\ConnectFour\Domains\Board;
 use MediumDubb\ConnectFour\DTO\BoardResponse;
 use MediumDubb\ConnectFour\Exceptions\ApiException;
 use MediumDubb\ConnectFour\Services\BoardCreateRequest;
 use MediumDubb\ConnectFour\Services\BoardJoinRequest;
 use MediumDubb\ConnectFour\Services\BoardStateRequest;
-use MediumDubb\ConnectFour\Services\TokenDropRequest;
 use MediumDubb\ConnectFour\Services\TokenHandler;
 
 class GameApiController extends CoreController
@@ -65,7 +65,7 @@ class GameApiController extends CoreController
 
         try {
             $stateRequest = BoardStateRequest::fromQueryParams();
-            $board = $stateRequest->getBoard();
+            $board = Board::getByID($stateRequest->getBoardID());
             $boardResponse = BoardResponse::fromDomain($board);
             $responseObj = $boardResponse->toArray();
         } catch (ApiException $e) {
@@ -81,15 +81,13 @@ class GameApiController extends CoreController
     public function create(): void
     {
         /**
-         *  1. validate request
-         *  2. get user ID
-         *  3. Create board in DB
-         *  4. Retrieve board state
+         *  1. validate request with user ID
+         *  3. Create board in DB and retrieve the initial state
          *  5. Send response
          */
         try {
             $createRequest = BoardCreateRequest::validateRequestMethod($this->getUid());
-            $board = $createRequest->getNewBoard();
+            $board = Board::create($createRequest->getPlayerID());
             $boardResponse = BoardResponse::fromDomain($board);
             $responseObj = $boardResponse->toArray();
         } catch (ApiException $e) {
@@ -115,7 +113,7 @@ class GameApiController extends CoreController
          */
         try {
             $joinRequest = BoardJoinRequest::fromQueryParams();
-            $board = $joinRequest->joinBoard($this->getUid());
+            $board = Board::getByJoin($joinRequest->getBoardID(), $this->getUid());
             $boardResponse = BoardResponse::fromDomain($board);
             $responseObj = $boardResponse->toArray();
         } catch (ApiException $e) {

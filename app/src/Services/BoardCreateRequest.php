@@ -2,9 +2,7 @@
 
 namespace MediumDubb\ConnectFour\Services;
 
-use MediumDubb\ConnectFour\Domains\Board;
 use MediumDubb\ConnectFour\Exceptions\ApiException;
-use MediumDubb\ConnectFour\Repositories\BoardRepo;
 
 final readonly class BoardCreateRequest
 {
@@ -33,16 +31,8 @@ final readonly class BoardCreateRequest
         );
     }
 
-    public function getPlayer1ID(): int
+    public function getPlayerID(): int
     {
         return $this->playerId;
-    }
-
-    /**
-     * @throws ApiException
-     */
-    public function getNewBoard(): Board
-    {
-        return new BoardRepo()->create($this->playerId);
     }
 }

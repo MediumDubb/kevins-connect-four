@@ -2,10 +2,8 @@
 
 namespace MediumDubb\ConnectFour\Services;
 
-use MediumDubb\ConnectFour\Domains\Board;
 use MediumDubb\ConnectFour\Domains\Token;
 use MediumDubb\ConnectFour\Exceptions\ApiException;
-use MediumDubb\ConnectFour\Repositories\BoardRepo;
 
 final readonly class TokenDropRequest
 {
@@ -65,11 +63,8 @@ final readonly class TokenDropRequest
         return $this->currentToken;
     }
 
-    /**
-     * @throws ApiException
-     */
-    public function getBoardFromRequest(): Board
+    public function getBoardID(): int
     {
-        return new BoardRepo()->getBoardByID($this->board);
+        return $this->board;
     }
 }

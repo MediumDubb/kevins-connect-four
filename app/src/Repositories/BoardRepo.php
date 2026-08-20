@@ -4,7 +4,6 @@ namespace MediumDubb\ConnectFour\Repositories;
 
 use Exception;
 use MediumDubb\ConnectFour\Database\PDOConnector;
-use MediumDubb\ConnectFour\Domains\Board;
 use MediumDubb\ConnectFour\Exceptions\ApiException;
 use PDO;
 use PDOException;
@@ -30,7 +29,7 @@ class BoardRepo
     /**
      * @throws ApiException
      */
-    public function getBoardByID(string $boardID): Board
+    public function getBoardByID(string $boardID): array
     {
         try {
             $stmt = $this->db->run(
@@ -39,8 +38,7 @@ class BoardRepo
                     ':boardID' => $boardID
                 ]
             );
-            $row = $stmt->fetch(PDO::FETCH_ASSOC);
-            return Board::fromDB($row);
+            return $stmt->fetch(PDO::FETCH_ASSOC);
         } catch (PDOException $e) {
             throw new ApiException('PDOServerSideError', 'Internal server error: lookup failed', 500);
         }
@@ -49,7 +47,7 @@ class BoardRepo
     /**
      * @throws ApiException
      */
-    public function create(string $player_id): Board
+    public function create(string $player_id): array
     {
         if (filter_var($player_id, FILTER_VALIDATE_INT)) {
             $player_id = intval($player_id);
@@ -76,18 +74,24 @@ class BoardRepo
     /**
      * @throws ApiException
      */
-    public function join(string $board_id, string $player_two_id): Board
+    public function join(string $board_id, string $player_two_id): array
     {
         try {
-            $this->db->run(
+            $stmt = $this->db->run(
                 "UPDATE " . self::TABLE . "
-                    SET (player_two_id, current_player) = (:player_two_id, :current_player_id)
-                    WHERE id = :id",
+                    SET (player2, current_player) = (:player_two_id, :current_player_id)
+                    WHERE id = :id
+                    AND player2 IS NULL",
                 [
                     'player_two_id' => $player_two_id,
                     'current_player_id' => $player_two_id
                 ]
             );
+
+            if ($stmt->rowCount() === 0) {
+                throw new ApiException('CannotJoinBoard', 'You cannot join this board');
+            }
+
         } catch (PDOException $e) {
             throw new ApiException('PDOServerSideError', 'Internal server error: unable to join.', 500);
         }
@@ -102,7 +106,7 @@ class BoardRepo
     {
         try {
             $stmt = $this->db->run(
-                "SELECT id FROM " . self::TABLE . " WHERE player_two_id IS NULL LIMIT 1"
+                "SELECT id FROM " . self::TABLE . " WHERE player2 IS NULL LIMIT 1"
             );
 
             $id = $stmt->fetchColumn();
@@ -116,7 +120,7 @@ class BoardRepo
     /**
      * @throws ApiException
      */
-    public function setBoardWinner(string $winnerID, string $boardID): void
+    public function setBoardWinner(string $winnerID, string $boardID): string|int
     {
         try {
             $this->db->run(
@@ -132,12 +136,14 @@ class BoardRepo
         } catch (PDOException $e) {
             throw new ApiException('PDOServerSideError', 'Internal server error: failed persisting winner', 500);
         }
+
+        return $winnerID;
     }
 
     /**
      * @throws ApiException
      */
-    public function getUpdatedTurnByBoardID(string $boardID): Board
+    public function updateTurn(string $boardID): string|int
     {
         try {
             $stmt = $this->db->run(
@@ -153,18 +159,22 @@ class BoardRepo
                 ]
             );
 
-            $nextPlayerID = $stmt->fetchColumn() ?? null;
+            $nextPlayerID = $stmt->fetchColumn();
         } catch (PDOException $e) {
             throw new ApiException('PDOServerSideError', 'Internal server error: failed on turn assignment', 500);
         }
 
-        return $this->updatePlayerTurn( $boardID,  $nextPlayerID);
+        if ($nextPlayerID) {
+            return $this->assignCurrentPlayer($boardID, $nextPlayerID);
+        } else {
+            throw new ApiException('FailedToAssignNextPlayer', 'Failed to get next player');
+        }
     }
 
     /**
      * @throws ApiException
      */
-    private function updatePlayerTurn(string $boardID, string $playerID): Board
+    private function assignCurrentPlayer(string $boardID, string $playerID): string|int
     {
         try {
             $this->db->run(
@@ -181,7 +191,7 @@ class BoardRepo
             throw new ApiException('PDOServerSideError', 'Internal server error: failed turn update', 500);
         }
 
-        return $this->getBoardByID($boardID);
+        return $playerID;
     }
 
     public function getRoomPlayerIDs(string $roomID): ?array
@@ -200,21 +210,5 @@ class BoardRepo
         );
 
         return $stmt->fetch(PDO::FETCH_ASSOC) ?: null;
-    }
-
-    public function getPlayerOne(string $roomID): ?string
-    {
-        $stmt = $this->db->run(
-            "SELECT 
-                    player1 AS player_one_id
-                    FROM " . self::TABLE . "
-                    WHERE id = :roomID
-                    LIMIT 1",
-            [
-                'roomID' => $roomID,
-            ]
-        );
-
-        return $stmt->fetchColumn() ?: null;
     }
 }

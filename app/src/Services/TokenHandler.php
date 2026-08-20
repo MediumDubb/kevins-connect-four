@@ -6,7 +6,6 @@ use MediumDubb\ConnectFour\Domains\Board;
 use MediumDubb\ConnectFour\Domains\Token;
 use MediumDubb\ConnectFour\DTO\BoardResponse;
 use MediumDubb\ConnectFour\Exceptions\ApiException;
-use MediumDubb\ConnectFour\Repositories\BoardRepo;
 use MediumDubb\ConnectFour\Repositories\TokenRepo;
 
 final readonly class TokenHandler
@@ -21,7 +20,7 @@ final readonly class TokenHandler
     {
         $request = TokenDropRequest::fromQueryParams();
         $this->currentToken = $request->getCurrentToken();
-        $this->board = $request->getBoardFromRequest();
+        $this->board = Board::getByID($request->getBoardID());
     }
 
     /**
@@ -32,10 +31,9 @@ final readonly class TokenHandler
         $this->validatePlayerMove();
         $this->setCurrentToken();
         $winnerID = $this->getWinner();
+
         if ($winnerID) {
             $this->board->setWinner($winnerID);
-            $newBoard = new BoardRepo()->getBoardByID($this->board->getBoardID());
-            return BoardResponse::fromDomain($newBoard)->toArray();
         }
 
         return BoardResponse::fromDomain($this->board)->toArray();

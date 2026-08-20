@@ -2,16 +2,17 @@
 
 namespace MediumDubb\ConnectFour\Services;
 
-use MediumDubb\ConnectFour\Domains\Board;
 use MediumDubb\ConnectFour\Exceptions\ApiException;
-use MediumDubb\ConnectFour\Repositories\BoardRepo;
 
-final readonly class BoardJoinRequest
+final class BoardJoinRequest
 {
     private const string BOARD_PARAM = 'boardId';
 
+    /**
+     * @throws ApiException
+     */
     public function __construct(
-        private int  $board,
+        private readonly int $board,
     ){}
 
     /**
@@ -43,27 +44,5 @@ final readonly class BoardJoinRequest
 
     public function getBoardID(): int {
         return $this->board;
-    }
-
-    /**
-     * @throws ApiException
-     */
-    public function getBoard(): Board
-    {
-        return new BoardRepo()->getBoardByID($this->board);
-    }
-
-    /**
-     * @throws ApiException
-     */
-    public function joinBoard(string|int $playerId): Board
-    {
-        $board = $this->getBoard();
-
-        if (!$board->boardIsFull()) {
-            return new BoardRepo()->join($this->getBoardID(), $playerId);
-        } else {
-            throw new ApiException("BoardFull", "Board is full, cannot join");
-        }
     }
 }
