@@ -51,5 +51,4 @@ final readonly class Token
     {
         return [$this->board_row, $this->board_column];
     }
-
 }

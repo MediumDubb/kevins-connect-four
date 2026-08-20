@@ -67,4 +67,9 @@ final readonly class TokenDropRequest
     {
         return $this->board;
     }
+
+    public function getPlayerID(): int
+    {
+        return $this->player;
+    }
 }

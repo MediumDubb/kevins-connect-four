@@ -6,21 +6,21 @@ use MediumDubb\ConnectFour\Domains\Board;
 use MediumDubb\ConnectFour\Domains\Token;
 use MediumDubb\ConnectFour\DTO\BoardResponse;
 use MediumDubb\ConnectFour\Exceptions\ApiException;
-use MediumDubb\ConnectFour\Repositories\TokenRepo;
 
 final readonly class TokenHandler
 {
     private Token $currentToken;
     private Board $board;
+    private TokenDropRequest $request;
 
     /**
      * @throws ApiException
      */
     public function __construct(private string|int $sessionPlayerID)
     {
-        $request = TokenDropRequest::fromQueryParams();
-        $this->currentToken = $request->getCurrentToken();
-        $this->board = Board::getByID($request->getBoardID());
+        $this->request = TokenDropRequest::fromQueryParams();
+        $this->currentToken = $this->request->getCurrentToken();
+        $this->board = Board::getByID($this->request->getBoardID());
     }
 
     /**
@@ -29,7 +29,7 @@ final readonly class TokenHandler
     public function getResponseObj(): array
     {
         $this->validatePlayerMove();
-        $this->setCurrentToken();
+        $this->board->setToken($this->request);
         $winnerID = $this->getWinner();
 
         if ($winnerID) {
@@ -37,14 +37,6 @@ final readonly class TokenHandler
         }
 
         return BoardResponse::fromDomain($this->board)->toArray();
-    }
-
-    /**
-     * @throws ApiException
-     */
-    private function setCurrentToken(): void
-    {
-        new TokenRepo()->setToken($this->currentToken->getBoardID(), $this->currentToken->getPlayerID(), $this->currentToken->getBoardColumn(), $this->currentToken->getBoardRow());
     }
 
     /**

@@ -5,6 +5,7 @@ namespace MediumDubb\ConnectFour\Domains;
 use MediumDubb\ConnectFour\Exceptions\ApiException;
 use MediumDubb\ConnectFour\Repositories\BoardRepo;
 use MediumDubb\ConnectFour\Repositories\TokenRepo;
+use MediumDubb\ConnectFour\Services\TokenDropRequest;
 
 final class Board
 {
@@ -130,6 +131,19 @@ final class Board
         if ($winnerID) {
             $this->winner = $winnerID;
         }
+    }
+
+    /**
+     * @throws ApiException
+     */
+    public function setToken(TokenDropRequest $tokenDropRequest): void
+    {
+        new TokenRepo()->setToken(
+            $tokenDropRequest->getBoardID(),
+            $tokenDropRequest->getPlayerID(),
+            $tokenDropRequest->getCurrentToken()->getBoardColumn(),
+            $tokenDropRequest->getCurrentToken()->getBoardRow()
+        );
     }
 
     /**
