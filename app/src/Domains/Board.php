@@ -4,7 +4,6 @@ namespace MediumDubb\ConnectFour\Domains;
 
 use MediumDubb\ConnectFour\Exceptions\ApiException;
 use MediumDubb\ConnectFour\Repositories\BoardRepo;
-use MediumDubb\ConnectFour\Repositories\PlayerRepo;
 use MediumDubb\ConnectFour\Repositories\TokenRepo;
 
 final class Board
@@ -84,12 +83,18 @@ final class Board
         return new TokenRepo()->getTokensByBoardID($this->id);
     }
 
+    /**
+     * @throws ApiException
+     */
     public function getPlayer1(): ?Player {
-        return $this->player1 ? new PlayerRepo()->getPlayerByID($this->player1) : null;
+        return $this->player1 ? Player::getByID($this->player1) : null;
     }
 
+    /**
+     * @throws ApiException
+     */
     public function getPlayer2(): ?Player {
-        return $this->player2 ? new PlayerRepo()->getPlayerByID($this->player2) : null;
+        return $this->player2 ? Player::getByID($this->player2) : null;
     }
 
     public function getCurrentPlayer(): ?int {

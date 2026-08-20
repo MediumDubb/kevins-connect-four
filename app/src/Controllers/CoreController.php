@@ -3,6 +3,8 @@
 namespace MediumDubb\ConnectFour\Controllers;
 
 use MediumDubb\ConnectFour\Database\PDOConnector;
+use MediumDubb\ConnectFour\Domains\Player;
+use MediumDubb\ConnectFour\Exceptions\ApiException;
 use MediumDubb\ConnectFour\Repositories\BoardRepo;
 use MediumDubb\ConnectFour\Repositories\PlayerRepo;
 use MediumDubb\ConnectFour\Repositories\TokenRepo;
@@ -22,6 +24,9 @@ class CoreController
         $this->db = new PDOConnector();
     }
 
+    /**
+     * @throws ApiException
+     */
     public function getUid(): ?string
     {
         if (isset($_GET['newSession'])) {
@@ -29,7 +34,7 @@ class CoreController
         }
 
         if (!$uid = $this->session->get(self::UID_KEY)) {
-            $uid = $_GET['playerID'] ?? $this->getPlayerRepo()->getNewPlayerID();
+            $uid = $_GET['playerID'] ?? Player::create()->getPlayerID();
             $this->session->set(self::UID_KEY, $uid);
         }
 

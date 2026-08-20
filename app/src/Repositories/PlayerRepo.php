@@ -3,8 +3,9 @@
 namespace MediumDubb\ConnectFour\Repositories;
 
 use MediumDubb\ConnectFour\Database\PDOConnector;
-use MediumDubb\ConnectFour\Domains\Player;
+use MediumDubb\ConnectFour\Exceptions\ApiException;
 use PDO;
+use PDOException;
 
 class PlayerRepo
 {
@@ -20,25 +21,46 @@ class PlayerRepo
         $this->db = new PDOConnector();
     }
 
+    /**
+     * @throws ApiException
+     */
     public function getNewPlayerID(): int
     {
-        $this->db->run(
-            "INSERT INTO ". self::TABLE_NAME ." () VALUES ()"
-        );
+        try {
+            $this->db->run(
+                "INSERT INTO ". self::TABLE_NAME ." () VALUES ()"
+            );
 
-        return $this->db->pdo->lastInsertId();
+            return $this->db->pdo->lastInsertId();
+        } catch (PDOException $e) {
+            throw new ApiException('PDOPlayerError', 'Failed to create new player', 500);
+        }
     }
 
-    public function getPlayerByID(string $playerID): Player
+    /**
+     * @throws ApiException
+     */
+    public function getPlayerByID(string $playerID): array
     {
-        $stmt = $this->db->run(
-            "SELECT * FROM ". self::TABLE_NAME ." WHERE id = :id",
-            [
-                ':id' => $playerID
-            ]
-        );
+        try {
+            $stmt = $this->db->run(
+                "SELECT * FROM ". self::TABLE_NAME ." WHERE id = :id",
+                [
+                    ':id' => $playerID
+                ]
+            );
 
-        $row = $stmt->fetch(PDO::FETCH_ASSOC);
-        return Player::fromDB($row);
+            $playerRow = $stmt->fetch(PDO::FETCH_ASSOC);
+
+            if ($playerRow) {
+                return $playerRow;
+            }
+            else {
+                throw new ApiException('PlayerNotFound', 'Player not found', 400);
+            }
+        } catch (PDOException $e) {
+            throw new ApiException('PDOPlayerError','Failed to get player', 500);
+        }
+
     }
 }
